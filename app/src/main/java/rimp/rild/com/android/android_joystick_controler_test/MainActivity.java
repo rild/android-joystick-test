@@ -56,12 +56,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onDirect() {
-                textView1.setText("X : " + String.valueOf(js.getX()));
-                textView2.setText("Y : " + String.valueOf(js.getY()));
-                textView3.setText("Angle : " + String.valueOf(js.getAngle()));
-                textView4.setText("Distance : " + String.valueOf(js.getDistance()));
-
+            public void onDirect(int posX, int posY, float angle, float distance) {
+                textView1.setText("X : " + String.valueOf(posX));
+                textView2.setText("Y : " + String.valueOf(posY));
+                textView3.setText("Angle : " + String.valueOf(angle));
+                textView4.setText("Distance : " + String.valueOf(distance));
             }
 
             @Override

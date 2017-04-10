@@ -111,7 +111,7 @@ public class JoyStick2 {
 
                 if (event.getAction() == MotionEvent.ACTION_DOWN
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
-                    on4DirectListener.onDirect();
+                    on4DirectListener.onDirect(getX(), getY(), getAngle(), getDistance());
 
                     if (distance > min_distance && isTouched) {
                         if (angle >= 247.5 && angle < 292.5) {
@@ -415,7 +415,7 @@ public class JoyStick2 {
     }
 
     interface On4DirectListener {
-        void onDirect();
+        void onDirect(int posX, int posY, float angle, float distance);
 
         void onNone();
 
