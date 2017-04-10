@@ -2,6 +2,7 @@ package rimp.rild.com.android.android_joystick_controler_test;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
                     if(direction == JoyStick.STICK_UP) {
                         textView5.setText("Direction : Up");
                         if (joystickSignal != null) joystickSignal.setBackgroundResource(R.drawable.signal_up);
+                        Log.d("Action", "up");
                     } else if(direction == JoyStick.STICK_UPRIGHT) {
                         textView5.setText("Direction : Up Right");
                     } else if(direction == JoyStick.STICK_RIGHT) {
