@@ -28,8 +28,9 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private final int MARGIN_SHADOW = 32;
     private final int DENO_RATE_OFFSET_TO_PAD = 3;
     private final int DENO_RATE_MIN_DISTANCE_TO_PAD = 12;
-    private int STICK_ALPHA = 200;
-    private int LAYOUT_ALPHA = 200;
+    private int ALPHA_STICK = 200;
+    private int ALPHA_LAYOUT = 200;
+    private int ALPHA_SIGNAL = 200;
     private int OFFSET = 0;
 
     private SurfaceHolder surfaceHolder;
@@ -59,6 +60,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private boolean isTouched = false;
     private boolean shouldDrawShadow = true;
+    private boolean canUseSignal = true;
 
     private JoyStickEvent stickState = JoyStickEvent.NONE;
 
@@ -74,7 +76,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         if (!isInEditMode()) setZOrderOnTop(true);
 
         res = context.getResources();
-        registerBitmapImages(res);
+        loadImages(res);
 
         stickWidth = stick.getWidth();
         stickHeight = stick.getHeight();
@@ -91,25 +93,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         registerOnTouchEvent();
     }
 
-    private void registerBitmapImages(Resources res) {
-        background = BitmapFactory.decodeResource(res,
-                R.drawable.s_joystick_base);
-        stick = BitmapFactory.decodeResource(res,
-                R.drawable.s_joystick_stick);
-        shadow = BitmapFactory.decodeResource(res,
-                R.drawable.s_joystick_shadow); // if you remove shadow, you should also remove "stickTall" : stickTall = 0
-
-        signalUp = BitmapFactory.decodeResource(res,
-                R.drawable.s_signal_up);
-        signalRight = BitmapFactory.decodeResource(res,
-                R.drawable.s_signal_right);
-        signalDown = BitmapFactory.decodeResource(res,
-                R.drawable.s_signal_down);
-        signalLeft = BitmapFactory.decodeResource(res,
-                R.drawable.s_signal_left);
-
-    }
-
     private void registerScreenSize() {
         params = new ViewGroup.LayoutParams(getWidth(), getHeight());
     }
@@ -118,14 +101,14 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                Log.d("Event", "touch event");
                 Canvas canvas = surfaceHolder.lockCanvas();
                 canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                 drawBackground(canvas);
                 drawStick(canvas, event);
                 surfaceHolder.unlockCanvasAndPost(canvas);
 
-                if (on4DirectListener == null) return true; // at least, it's necessary to set on4Direct function
+                if (on4DirectListener == null)
+                    return true; // at least, it's necessary to set on4Direct function
 
                 if (event.getAction() == MotionEvent.ACTION_DOWN
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
@@ -185,6 +168,44 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         jsEntity.center_y = height / 2;
     }
 
+    private void loadImages(Resources res) {
+        if (background != null) background.recycle();
+        if (stick != null) stick.recycle();
+        if (shadow != null) shadow.recycle();
+
+        background = BitmapFactory.decodeResource(res,
+                R.drawable.s_joystick_base);
+        stick = BitmapFactory.decodeResource(res,
+                R.drawable.s_joystick_stick);
+        shadow = BitmapFactory.decodeResource(res,
+                R.drawable.s_joystick_shadow); // if you remove shadow, you should also remove "stickTall" : stickTall = 0
+
+        if (canUseSignal) loadSignalImages(res);
+    }
+
+    private void loadSignalImages(Resources res) {
+        if (signalUp != null) signalUp.recycle();
+        if (signalRight != null) signalRight.recycle();
+        if (signalDown != null) signalDown.recycle();
+        if (signalLeft != null) signalLeft.recycle();
+
+        signalUp = BitmapFactory.decodeResource(res,
+                R.drawable.s_signal_up);
+        signalRight = BitmapFactory.decodeResource(res,
+                R.drawable.s_signal_right);
+        signalDown = BitmapFactory.decodeResource(res,
+                R.drawable.s_signal_down);
+        signalLeft = BitmapFactory.decodeResource(res,
+                R.drawable.s_signal_left);
+    }
+
+    private void releaseSignalImages() {
+        signalUp.recycle();
+        signalRight.recycle();
+        signalDown.recycle();
+        signalLeft.recycle();
+    }
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         init();
@@ -225,14 +246,11 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 params.height / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW);
         setLayoutAlpha(150);
         setStickAlpha(180);
+        setSignalAlpha(220);
         setOffset(params.width / DENO_RATE_OFFSET_TO_PAD);
         setMinimumDistance(params.width / DENO_RATE_MIN_DISTANCE_TO_PAD);
 
         resizeImages();
-    }
-
-    public void drawBackground(Canvas canvas) {
-        canvas.drawBitmap(background, 0, 0, alphaBackground);
     }
 
     public void drawStick(Canvas canvas, MotionEvent event) {
@@ -257,12 +275,12 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 jsEntity.position(x, y);
                 drawSignal(canvas);
             } else {
-                // reset stick
+                // reset stick pad
                 canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                 drawBackground(canvas);
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            // reset stick
+            // reset stick pad
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             drawBackground(canvas);
             isTouched = false;
@@ -272,7 +290,30 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         if (isTouched) drawStick(canvas); // darken stick on touched
     }
 
+    private void drawStick(Canvas canvas) {
+        if (isTouched) {
+            if (shadow != null && shouldDrawShadow)
+                canvas.drawBitmap(shadow, jsEntity.s_x, jsEntity.s_y, alphaStick);
+            canvas.drawBitmap(stick, jsEntity.x, jsEntity.y, alphaStick);
+        } else {
+            if (shadow != null && shouldDrawShadow) {
+                canvas.drawBitmap(shadow,
+                        jsEntity.center_x - (shadowWidth / 2),
+                        jsEntity.center_y - (shadowHeight / 2) + stickTall,
+                        alphaStick);
+                canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2) - stickTall, alphaStick);
+            } else {
+                canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2), alphaStick);
+            }
+        }
+    }
+
+    public void drawBackground(Canvas canvas) {
+        canvas.drawBitmap(background, 0, 0, alphaBackground);
+    }
+
     private void drawSignal(Canvas canvas) {
+        if (!canUseSignal) return;
         switch (stickState) {
             case UP:
                 Log.d("Draw", "signal up");
@@ -290,23 +331,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 Log.d("Draw", "signal left");
                 canvas.drawBitmap(signalLeft, 0, 0, alphaSignal);
                 break;
-        }
-    }
-
-    private void drawStick(Canvas canvas) {
-        if (isTouched) {
-            if (shadow != null && shouldDrawShadow) canvas.drawBitmap(shadow, jsEntity.s_x, jsEntity.s_y, alphaStick);
-            canvas.drawBitmap(stick, jsEntity.x, jsEntity.y, alphaStick);
-        } else {
-            if (shadow != null && shouldDrawShadow) {
-                canvas.drawBitmap(shadow,
-                        jsEntity.center_x - (shadowWidth / 2),
-                        jsEntity.center_y - (shadowHeight / 2) + stickTall,
-                        alphaStick);
-                canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2) - stickTall, alphaStick);
-            } else {
-                canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2), alphaStick);
-            }
         }
     }
 
@@ -347,11 +371,15 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public int getLayoutAlpha() {
-        return LAYOUT_ALPHA;
+        return ALPHA_LAYOUT;
     }
 
     public int getStickAlpha() {
-        return STICK_ALPHA;
+        return ALPHA_STICK;
+    }
+
+    public int getALPHA_SIGNAL() {
+        return ALPHA_SIGNAL;
     }
 
     public JoyStickEvent getStickState() {
@@ -363,14 +391,23 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     private void resizeImages() {
-        if (shadow != null)
-            shadow = Bitmap.createScaledBitmap(shadow, shadowWidth, shadowHeight, false);
-        stick = Bitmap.createScaledBitmap(stick, stickWidth, stickHeight, false);
-        background = Bitmap.createScaledBitmap(background, params.width, params.height, false);
-        signalUp = Bitmap.createScaledBitmap(signalUp, params.width, params.height, false);
-        signalRight = Bitmap.createScaledBitmap(signalRight, params.width, params.height, false);
-        signalDown = Bitmap.createScaledBitmap(signalDown, params.width, params.height, false);
-        signalLeft = Bitmap.createScaledBitmap(signalLeft, params.width, params.height, false);
+        if (shadow != null) {
+            shadow = resizeImage(shadow, shadowWidth, shadowHeight);
+        }
+
+        stick = resizeImage(stick, stickWidth, stickHeight);
+        background = resizeImage(background, params.width, params.height);
+
+        if (canUseSignal) {
+            signalUp = resizeImage(signalUp, params.width, params.height);
+            signalRight = resizeImage(signalRight, params.width, params.height);
+            signalDown = resizeImage(signalDown, params.width, params.height);
+            signalLeft = resizeImage(signalLeft, params.width, params.height);
+        }
+    }
+
+    private Bitmap resizeImage(Bitmap original, int targetWidth, int targetHeight) {
+        return Bitmap.createScaledBitmap(original, targetWidth, targetHeight, false);
     }
 
     public void setStickSize(int width, int height) {
@@ -387,13 +424,18 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public void setLayoutAlpha(int alpha) {
-        LAYOUT_ALPHA = alpha;
+        ALPHA_LAYOUT = alpha;
         alphaBackground.setAlpha(alpha);
     }
 
     public void setStickAlpha(int alpha) {
-        STICK_ALPHA = alpha;
+        ALPHA_STICK = alpha;
         alphaStick.setAlpha(alpha);
+    }
+
+    public void setSignalAlpha(int alpha) {
+        ALPHA_SIGNAL = alpha;
+        alphaSignal.setAlpha(alpha);
     }
 
     public void setShadowSize(int width, int height) {
@@ -401,8 +443,17 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         this.shadowHeight = height;
     }
 
-    public void setShadowVisiblity(boolean shouldDrawShadow) {
+    public void setShadowVisibility(boolean shouldDrawShadow) {
         this.shouldDrawShadow = shouldDrawShadow;
+    }
+
+    public void setSignalAvailability(boolean canUseSignal) {
+        this.canUseSignal = canUseSignal;
+        if (canUseSignal) {
+            loadImages(res);
+        } else {
+            releaseSignalImages();
+        }
     }
 
     public void setStickState(JoyStickEvent stickState) {
