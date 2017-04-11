@@ -269,7 +269,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         }
         // reset stick
         drawStick(canvas);
-        if (isTouched) drawStick(canvas);
+        if (isTouched) drawStick(canvas); // darken stick on touched
     }
 
     private void drawSignal(Canvas canvas) {
