@@ -249,7 +249,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         positionX = (int) (event.getX() - (params.width / 2));
         positionY = (int) (event.getY() - (params.height / 2));
         distance = (float) Math.sqrt(Math.pow(positionX, 2) + Math.pow(positionY, 2));
-        angle = (float) cal_angle(positionX, positionY);
+        angle = (float) calAngle(positionX, positionY);
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (distance <= (params.width / 2) - OFFSET) {
@@ -260,8 +260,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             if (distance <= (params.width / 2) - OFFSET) {
                 jsEntity.position(event.getX(), event.getY());
             } else if (distance > (params.width / 2) - OFFSET) {
-                float x = (float) (Math.cos(Math.toRadians(cal_angle(positionX, positionY))) * ((params.width / 2) - OFFSET));
-                float y = (float) (Math.sin(Math.toRadians(cal_angle(positionX, positionY))) * ((params.height / 2) - OFFSET));
+                float x = (float) (Math.cos(Math.toRadians(calAngle(positionX, positionY))) * ((params.width / 2) - OFFSET));
+                float y = (float) (Math.sin(Math.toRadians(calAngle(positionX, positionY))) * ((params.height / 2) - OFFSET));
                 x += (params.width / 2);
                 y += (params.height / 2);
                 jsEntity.position(x, y);
@@ -305,10 +305,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private void drawStick(Canvas canvas) {
         if (isTouched) {
-            canvas.drawBitmap(shadow, jsEntity.s_x, jsEntity.s_y, alphaStick);
+            if (shadow != null) canvas.drawBitmap(shadow, jsEntity.s_x, jsEntity.s_y, alphaStick);
             canvas.drawBitmap(stick, jsEntity.x, jsEntity.y, alphaStick);
         } else {
-            canvas.drawBitmap(shadow, jsEntity.center_x - (shadowWidth / 2), jsEntity.center_y - (shadowHeight / 2) + stickTall, alphaStick);
+            if (shadow != null) canvas.drawBitmap(shadow, jsEntity.center_x - (shadowWidth / 2), jsEntity.center_y - (shadowHeight / 2) + stickTall, alphaStick);
             canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2) - stickTall, alphaStick);
         }
     }
@@ -397,7 +397,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         return stickState;
     }
 
-    private double cal_angle(float x, float y) {
+    private double calAngle(float x, float y) {
         if (x >= 0 && y >= 0)
             return Math.toDegrees(Math.atan(y / x));
         else if (x < 0 && y >= 0)
