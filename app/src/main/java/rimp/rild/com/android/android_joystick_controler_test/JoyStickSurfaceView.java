@@ -66,6 +66,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private On8DirectListener on8DirectListener;
     private On4DirectListener on4DirectListener;
+    private OnChangeStateListener onChangeStateListener;
 
     public JoyStickSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -115,38 +116,31 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                     on4DirectListener.onDirect(getPosX(), getPosY(), getAngle(), getDistance());
 
                     if (distance > minDistance && isTouched) {
-                        if (angle >= 247.5 && angle < 292.5) {
-                            // STICK_UP;
-                            on4DirectListener.onUp();
-                            stickState = JoyStickEvent.UP;
-                        } else if (angle >= 292.5 && angle < 337.5) {
-                            // STICK_UPRIGHT;
-                            if (on8DirectListener != null) on8DirectListener.onUpRight();
-                            stickState = JoyStickEvent.UPRIGHT;
-                        } else if (angle >= 337.5 || angle < 22.5) {
-                            // STICK_RIGHT;
-                            on4DirectListener.onRight();
-                            stickState = JoyStickEvent.RIGHT;
-                        } else if (angle >= 22.5 && angle < 67.5) {
-                            // STICK_DOWNRIGHT;
-                            if (on8DirectListener != null) on8DirectListener.onDownRight();
-                            stickState = JoyStickEvent.DOWNRIGHT;
-                        } else if (angle >= 67.5 && angle < 112.5) {
-                            // STICK_DOWN;
-                            on4DirectListener.onDown();
-                            stickState = JoyStickEvent.DOWN;
-                        } else if (angle >= 112.5 && angle < 157.5) {
-                            // STICK_DOWNLEFT;
-                            if (on8DirectListener != null) on8DirectListener.onDownLeft();
-                            stickState = JoyStickEvent.DOWNLEFT;
-                        } else if (angle >= 157.5 && angle < 202.5) {
-                            // STICK_LEFT;
-                            on4DirectListener.onLeft();
-                            stickState = JoyStickEvent.LEFT;
-                        } else if (angle >= 202.5 && angle < 247.5) {
-                            // STICK_UPLEFT;
-                            if (on8DirectListener != null) on8DirectListener.onUpLeft();
-                            stickState = JoyStickEvent.UPLEFT;
+                        switch (judge8DirectionEvent(angle)) {
+                            case UP:
+                                onUp();
+                                break;
+                            case UPRIGHT:
+                                onUpRight();
+                                break;
+                            case RIGHT:
+                                onRight();
+                                break;
+                            case DOWNRIGHT:
+                                onDownRight();
+                                break;
+                            case DOWN:
+                                onDown();
+                                break;
+                            case DOWNLEFT:
+                                onDownLeft();
+                                break;
+                            case LEFT:
+                                onLeft();
+                                break;
+                            case UPLEFT:
+                                onUpLeft();
+                                break;
                         }
                     } else if (distance <= minDistance && isTouched) {
                         // STICK_NONE;
@@ -161,6 +155,84 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 return true;
             }
         });
+    }
+
+    private JoyStickEvent judge8DirectionEvent(float angle) {
+        JoyStickEvent event = JoyStickEvent.NONE;
+        if (angle >= 247.5 && angle < 292.5) {
+            // STICK_UP;
+            return JoyStickEvent.UP;
+        } else if (angle >= 292.5 && angle < 337.5) {
+            // STICK_UPRIGHT;
+            return JoyStickEvent.UPRIGHT;
+        } else if (angle >= 337.5 || angle < 22.5) {
+            // STICK_RIGHT;
+            return JoyStickEvent.RIGHT;
+        } else if (angle >= 22.5 && angle < 67.5) {
+            // STICK_DOWNRIGHT;
+            return JoyStickEvent.DOWNRIGHT;
+        } else if (angle >= 67.5 && angle < 112.5) {
+            // STICK_DOWN;
+            return JoyStickEvent.DOWN;
+        } else if (angle >= 112.5 && angle < 157.5) {
+            // STICK_DOWNLEFT;
+            return JoyStickEvent.DOWNLEFT;
+        } else if (angle >= 157.5 && angle < 202.5) {
+            // STICK_LEFT;
+            return JoyStickEvent.LEFT;
+        } else if (angle >= 202.5 && angle < 247.5) {
+            // STICK_UPLEFT;
+            return JoyStickEvent.UPLEFT;
+        }
+        return event;
+    }
+
+    private void onUp() {
+        if (stickState != JoyStickEvent.UP)
+            on4DirectListener.onUp();
+        stickState = JoyStickEvent.UP;
+    }
+
+    private void onUpRight() {
+        if (on8DirectListener != null && stickState != JoyStickEvent.UPRIGHT)
+            on8DirectListener.onUpRight();
+        stickState = JoyStickEvent.UPRIGHT;
+    }
+
+    private void onRight() {
+        if (stickState != JoyStickEvent.RIGHT)
+            on4DirectListener.onRight();
+        stickState = JoyStickEvent.RIGHT;
+    }
+
+    private void onDownRight() {
+        if (on8DirectListener != null && stickState != JoyStickEvent.DOWNRIGHT)
+            on8DirectListener.onDownRight();
+        stickState = JoyStickEvent.DOWNRIGHT;
+    }
+
+    private void onDown() {
+        if (stickState != JoyStickEvent.DOWN)
+            on4DirectListener.onDown();
+        stickState = JoyStickEvent.DOWN;
+    }
+
+    private void onDownLeft() {
+        if (on8DirectListener != null && stickState != JoyStickEvent.DOWNLEFT)
+            on8DirectListener.onDownLeft();
+        stickState = JoyStickEvent.DOWNLEFT;
+    }
+
+    private void onLeft() {
+        if (stickState != JoyStickEvent.LEFT)
+            on4DirectListener.onLeft();
+        stickState = JoyStickEvent.LEFT;
+    }
+
+    private void onUpLeft() {
+        if (on8DirectListener != null && stickState != JoyStickEvent.UPLEFT)
+            on8DirectListener.onUpLeft();
+        stickState = JoyStickEvent.UPLEFT;
     }
 
     public void registerLayoutCenter(int width, int height) {
@@ -316,19 +388,15 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         if (!canUseSignal) return;
         switch (stickState) {
             case UP:
-                Log.d("Draw", "signal up");
                 canvas.drawBitmap(signalUp, 0, 0, alphaSignal);
                 break;
             case RIGHT:
-                Log.d("Draw", "signal right");
                 canvas.drawBitmap(signalRight, 0, 0, alphaSignal);
                 break;
             case DOWN:
-                Log.d("Draw", "signal down");
                 canvas.drawBitmap(signalDown, 0, 0, alphaSignal);
                 break;
             case LEFT:
-                Log.d("Draw", "signal left");
                 canvas.drawBitmap(signalLeft, 0, 0, alphaSignal);
                 break;
         }
@@ -399,12 +467,17 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         background = resizeImage(background, params.width, params.height);
 
         if (canUseSignal) {
-            signalUp = resizeImage(signalUp, params.width, params.height);
-            signalRight = resizeImage(signalRight, params.width, params.height);
-            signalDown = resizeImage(signalDown, params.width, params.height);
-            signalLeft = resizeImage(signalLeft, params.width, params.height);
+            resizeSignalImages();
         }
     }
+
+    private void resizeSignalImages() {
+        signalUp = resizeImage(signalUp, params.width, params.height);
+        signalRight = resizeImage(signalRight, params.width, params.height);
+        signalDown = resizeImage(signalDown, params.width, params.height);
+        signalLeft = resizeImage(signalLeft, params.width, params.height);
+    }
+
 
     private Bitmap resizeImage(Bitmap original, int targetWidth, int targetHeight) {
         return Bitmap.createScaledBitmap(original, targetWidth, targetHeight, false);
@@ -451,6 +524,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         this.canUseSignal = canUseSignal;
         if (canUseSignal) {
             loadImages(res);
+            resizeSignalImages();
         } else {
             releaseSignalImages();
         }
@@ -507,6 +581,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         void onFinish();
     }
 
+    interface OnChangeStateListener {
+        void onChangeState(JoyStickEvent next, JoyStickEvent previous);
+    }
+
     enum JoyStickEvent {
         NONE,
         UP,
@@ -516,7 +594,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         DOWN,
         DOWNLEFT,
         LEFT,
-        UPLEFT
+        UPLEFT;
     }
 
     class JoyStick {

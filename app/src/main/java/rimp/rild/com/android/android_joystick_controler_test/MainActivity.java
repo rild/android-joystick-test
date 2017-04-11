@@ -77,16 +77,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRight() {
                 textView5.setText("Direction : Right");
+                Log.d("Action", "right");
             }
 
             @Override
             public void onDown() {
                 textView5.setText("Direction : Down");
+                Log.d("Action", "down");
             }
 
             @Override
             public void onLeft() {
                 textView5.setText("Direction : Left");
+                Log.d("Action", "left");
             }
 
             @Override
