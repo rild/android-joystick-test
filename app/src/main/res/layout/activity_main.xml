@@ -56,8 +56,8 @@
 
     <rimp.rild.com.android.android_joystick_controler_test.JoyStickSurfaceView
         android:id="@+id/main_joystick"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 </RelativeLayout>

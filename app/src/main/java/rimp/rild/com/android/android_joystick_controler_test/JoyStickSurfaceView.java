@@ -16,38 +16,40 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 /**
  * Created by rild on 2017/04/10.
  */
 
 public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-    SurfaceHolder surfaceHolder;
-
+    private SurfaceHolder surfaceHolder;
 
     private int STICK_ALPHA = 200;
     private int LAYOUT_ALPHA = 200;
     private int OFFSET = 0;
-    private int OFFSET_SHADOW = 0; // addition by rild
+    private final int DENO_RATE_STICK_TALL_TO_SIZE = 25;
+    private final int DENO_RATE_STICK_SIZE_TO_PAD = 2;
+    private final int MARGIN_SHADOW = 32;
+    private final int DENO_RATE_OFFSET_TO_PAD = 3;
+    private final int DENO_RATE_MIN_DISTANCE_TO_PAD = 12;
 
-    private Context mContext;
+    //    private Context mContext;
     private ViewGroup.LayoutParams params;
-    private int width, height;
-    private int stick_width, stick_height;
-    private int shadow_width, shadow_height; // addition by rild
-    private int position_x = 0, position_y = 0, min_distance = 0;
+    private int stickTall;
+    private int stickWidth, stickHeight;
+    private int shadowWidth, shadowHeight;
+    private int positionX = 0, positionY = 0, minDistance = 0;
     private float distance = 0, angle = 0;
 
-    private JoyStick draw;
-    private Paint paint;
-    Paint alphaBackground;
-    Paint alphaStick;
+    private JoyStick jsEntity; // joy stick entity
+    private Paint alphaSignal;
+    private Paint alphaBackground;
+    private Paint alphaStick;
 
-    Resources res;
+    private Resources res;
     private Bitmap background;
     private Bitmap stick;
-    private Bitmap shadow; // addition by rild
+    private Bitmap shadow; // joy stick shadow
     private Bitmap signalUp;
     private Bitmap signalRight;
     private Bitmap signalDown;
@@ -70,23 +72,24 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     public JoyStickSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mContext = context;
+//        mContext = context;
         surfaceHolder = getHolder();
         surfaceHolder.addCallback(this);
         surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
 
-        res = mContext.getResources();
+        res = context.getResources();
         registerBitmapImages(res);
 
-        stick_width = stick.getWidth();
-        stick_height = stick.getHeight();
-        shadow_width = shadow.getWidth();
-        shadow_height = shadow.getHeight();
+        stickWidth = stick.getWidth();
+        stickHeight = stick.getHeight();
+        shadowWidth = shadow.getWidth();
+        shadowHeight = shadow.getHeight();
 
-        paint = new Paint();
+        alphaSignal = new Paint();
         alphaBackground = new Paint();
         alphaStick = new Paint();
-        draw = new JoyStick();
+        jsEntity = new JoyStick();
+
         registerOnTouchEvent();
     }
 
@@ -114,31 +117,42 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     }
 
-    public void init() {
-//        params = getLayoutParams();
-//        params.width = 500;
-//        params.height = 500;
-//
-//        setLayoutParams(params);
-        setLayoutSize(500, 500);
-        setStickSize(220, 220);
+    private void registerScreenSize() {
+        params = new ViewGroup.LayoutParams(getWidth(), getHeight());
+    }
+
+    private void init() {
+//        Log.d("Params", "" + getWidth() + ", " + getHeight());
+        registerScreenSize();
+
+        registerLayoutCenter(params.width, params.height);
+
+        // default
+        // pad (params) 504 // 126 * 4
+        // stick size   220 // 55 * 4
+        // shadow size  252 // 63 * 4
+        // offset       180 // 45 * 4
+        // min distance 40  // 10 * 4
+        // pad alpha    150
+        // stick alpha  180
+
+        stickTall = stickHeight / DENO_RATE_STICK_TALL_TO_SIZE; // make user feel sticky
+        setStickSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD, params.height / DENO_RATE_STICK_SIZE_TO_PAD);
+        setShadowSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW,
+                params.height / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW);
         setLayoutAlpha(150);
         setStickAlpha(180);
-        setOffset(180);
-        setMinimumDistance(50);
+        setOffset(params.width / DENO_RATE_OFFSET_TO_PAD);
+        setMinimumDistance(params.width / DENO_RATE_MIN_DISTANCE_TO_PAD);
 
-        setShadowSize(250, 250);
         resizeImages();
-
-//        // show stick
-//        draw();
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
 //        params = getLayoutParams();
+        Log.d("created", "surfaceCreated");
         init();
-//        if (canvas == null) canvas = surfaceHolder.lockCanvas();
         Canvas canvas = surfaceHolder.lockCanvas();
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         drawBackground(canvas);
@@ -155,12 +169,12 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                Log.d("Event", "touch event");
                 Canvas canvas = surfaceHolder.lockCanvas();
                 canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                 drawBackground(canvas);
                 drawStick(canvas, event);
                 surfaceHolder.unlockCanvasAndPost(canvas);
-//                Log.d("Event", "on touch 2");
 
                 if (on4DirectListener == null) return true;
 
@@ -168,7 +182,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
                     on4DirectListener.onDirect(getPosX(), getPosY(), getAngle(), getDistance());
 
-                    if (distance > min_distance && isTouched) {
+                    if (distance > minDistance && isTouched) {
                         if (angle >= 247.5 && angle < 292.5) {
                             // STICK_UP;
                             on4DirectListener.onUp();
@@ -198,13 +212,12 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                             // STICK_UPLEFT;
                             if (on8DirectListener != null) on8DirectListener.onUpLeft();
                         }
-                    } else if (distance <= min_distance && isTouched) {
+                    } else if (distance <= minDistance && isTouched) {
                         // STICK_NONE;
                         on4DirectListener.onNone();
                     }
 
                 } else {
-                    Log.d("Event", "on move finished");
                     on4DirectListener.onFinish();
                 }
                 return true;
@@ -213,15 +226,15 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public int getPosX() {
-        if (distance > min_distance && isTouched) {
-            return position_x;
+        if (distance > minDistance && isTouched) {
+            return positionX;
         }
         return 0;
     }
 
     public int getPosY() {
-        if (distance > min_distance && isTouched) {
-            return position_y;
+        if (distance > minDistance && isTouched) {
+            return positionY;
         }
         return 0;
     }
@@ -232,89 +245,82 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public void drawStick(Canvas canvas, MotionEvent event) {
-        position_x = (int) (event.getX() - (width / 2));
-        position_y = (int) (event.getY() - (height / 2));
-        distance = (float) Math.sqrt(Math.pow(position_x, 2) + Math.pow(position_y, 2));
-        angle = (float) cal_angle(position_x, position_y);
+        positionX = (int) (event.getX() - (params.width / 2));
+        positionY = (int) (event.getY() - (params.height / 2));
+        distance = (float) Math.sqrt(Math.pow(positionX, 2) + Math.pow(positionY, 2));
+        angle = (float) cal_angle(positionX, positionY);
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (distance <= (width / 2) - OFFSET) {
-                draw.position(event.getX(), event.getY());
-//                drawStick(canvas);
+            if (distance <= (params.width / 2) - OFFSET) {
+                jsEntity.position(event.getX(), event.getY());
                 isTouched = true;
             }
         } else if (event.getAction() == MotionEvent.ACTION_MOVE && isTouched) {
-            if (distance <= (width / 2) - OFFSET) {
-                draw.position(event.getX(), event.getY());
-//                drawStick(canvas);
-            } else if (distance > (width / 2) - OFFSET) {
-                float x = (float) (Math.cos(Math.toRadians(cal_angle(position_x, position_y))) * ((width / 2) - OFFSET));
-                float y = (float) (Math.sin(Math.toRadians(cal_angle(position_x, position_y))) * ((height / 2) - OFFSET));
-                x += (width / 2);
-                y += (height / 2);
-                draw.position(x, y);
+            if (distance <= (params.width / 2) - OFFSET) {
+                jsEntity.position(event.getX(), event.getY());
+            } else if (distance > (params.width / 2) - OFFSET) {
+                float x = (float) (Math.cos(Math.toRadians(cal_angle(positionX, positionY))) * ((params.width / 2) - OFFSET));
+                float y = (float) (Math.sin(Math.toRadians(cal_angle(positionX, positionY))) * ((params.height / 2) - OFFSET));
+                x += (params.width / 2);
+                y += (params.height / 2);
+                jsEntity.position(x, y);
                 drawSignal(canvas);
-//                drawStick(canvas);
             } else {
-//                mLayout.removeView(draw);
+                // reset stick
                 canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                 drawBackground(canvas);
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
-//            mLayout.removeView(draw);
+            // reset stick
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             drawBackground(canvas);
             isTouched = false;
         }
         // reset stick
-//        drawSignal(canvas);
-//        Log.d("Draw", "stick");
         drawStick(canvas);
+        if (isTouched) drawStick(canvas);
     }
 
     private void drawSignal(Canvas canvas) {
-//        Log.d("method", "signal");
         switch (stickState) {
             case UP:
                 Log.d("Draw", "signal up");
-                canvas.drawBitmap(signalUp, 0, 0, paint);
+                canvas.drawBitmap(signalUp, 0, 0, alphaSignal);
                 break;
             case RIGHT:
                 Log.d("Draw", "signal right");
-                canvas.drawBitmap(signalRight, 0, 0, paint);
+                canvas.drawBitmap(signalRight, 0, 0, alphaSignal);
                 break;
             case DOWN:
                 Log.d("Draw", "signal down");
-                canvas.drawBitmap(signalDown, 0, 0, paint);
+                canvas.drawBitmap(signalDown, 0, 0, alphaSignal);
                 break;
             case LEFT:
                 Log.d("Draw", "signal left");
-                canvas.drawBitmap(signalLeft, 0, 0, paint);
+                canvas.drawBitmap(signalLeft, 0, 0, alphaSignal);
                 break;
         }
     }
 
     private void drawStick(Canvas canvas) {
-//        canvas.drawBitmap(stick, draw.x, draw.y, paint);
         if (isTouched) {
-            canvas.drawBitmap(shadow, draw.s_x, draw.s_y, paint);
-            canvas.drawBitmap(stick, draw.x, draw.y, paint);
+            canvas.drawBitmap(shadow, jsEntity.s_x, jsEntity.s_y, alphaStick);
+            canvas.drawBitmap(stick, jsEntity.x, jsEntity.y, alphaStick);
         } else {
-            int stick_tall = 15;// make user feel sticky
-            canvas.drawBitmap(shadow, draw.center_x - (shadow_width / 2), draw.center_y - (shadow_height / 2) + stick_tall, paint);
-            canvas.drawBitmap(stick, draw.center_x - (stick_width / 2), draw.center_y - (stick_height / 2) - stick_tall, paint);
+            canvas.drawBitmap(shadow, jsEntity.center_x - (shadowWidth / 2), jsEntity.center_y - (shadowHeight / 2) + stickTall, alphaStick);
+            canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2) - stickTall, alphaStick);
         }
     }
 
     public float getAngle() {
-        if (distance > min_distance && isTouched) {
+        if (distance > minDistance && isTouched) {
             return angle;
         }
         return 0;
     }
 
     public float getDistance() {
-        if (distance > min_distance && isTouched) {
+        if (distance > minDistance && isTouched) {
             return distance;
         }
         return 0;
@@ -322,38 +328,33 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private void resizeImages() {
         if (shadow != null)
-            shadow = Bitmap.createScaledBitmap(shadow, shadow_width, shadow_height, false);
-        stick = Bitmap.createScaledBitmap(stick, stick_width, stick_height, false);
-        background = Bitmap.createScaledBitmap(background, width, height, false);
-        signalUp = Bitmap.createScaledBitmap(signalUp, width, height, false);
-        signalRight = Bitmap.createScaledBitmap(signalRight, width, height, false);
-        signalDown = Bitmap.createScaledBitmap(signalDown, width, height, false);
-        signalLeft = Bitmap.createScaledBitmap(signalLeft, width, height, false);
+            shadow = Bitmap.createScaledBitmap(shadow, shadowWidth, shadowHeight, false);
+        stick = Bitmap.createScaledBitmap(stick, stickWidth, stickHeight, false);
+        background = Bitmap.createScaledBitmap(background, params.width, params.height, false);
+        signalUp = Bitmap.createScaledBitmap(signalUp, params.width, params.height, false);
+        signalRight = Bitmap.createScaledBitmap(signalRight, params.width, params.height, false);
+        signalDown = Bitmap.createScaledBitmap(signalDown, params.width, params.height, false);
+        signalLeft = Bitmap.createScaledBitmap(signalLeft, params.width, params.height, false);
     }
 
     public void setStickSize(int width, int height) {
-//        stick_width = stick.getWidth();
-//        stick_height = stick.getHeight();
-        stick_width = width;
-        stick_height = height;
+        stickWidth = width;
+        stickHeight = height;
     }
 
-    public void setLayoutSize(int width, int height) {
-        this.width = width;
-        this.height = height;
-
+    public void registerLayoutCenter(int width, int height) {
         // addition
-        draw.center_x = width / 2;
-        draw.center_y = height / 2;
+        jsEntity.center_x = width / 2;
+        jsEntity.center_y = height / 2;
         // end
     }
 
     public void setMinimumDistance(int minDistance) {
-        min_distance = minDistance;
+        this.minDistance = minDistance;
     }
 
     public int getMinimumDistance() {
-        return min_distance;
+        return minDistance;
     }
 
     public void setOffset(int offset) {
@@ -375,7 +376,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     public void setStickAlpha(int alpha) {
         STICK_ALPHA = alpha;
-        paint.setAlpha(alpha);
+        alphaStick.setAlpha(alpha);
     }
 
     public int getStickAlpha() {
@@ -383,8 +384,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public void setShadowSize(int width, int height) {
-        this.shadow_width = width;
-        this.shadow_height = height;
+        this.shadowWidth = width;
+        this.shadowHeight = height;
     }
 
     public void setStickState(JoyStickEvent stickState) {
@@ -450,27 +451,15 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         float s_x, s_y;
         float center_x, center_y;
 
-        public void onDraw(Canvas canvas) {
-            // check center
-            if (isTouched) {
-                canvas.drawBitmap(shadow, s_x, s_y, paint);
-                canvas.drawBitmap(stick, x, y, paint);
-            } else {
-                int stick_tall = 15;// make user feel sticky
-                canvas.drawBitmap(shadow, center_x - (shadow_width / 2), center_y - (shadow_height / 2) + stick_tall, paint);
-                canvas.drawBitmap(stick, center_x - (stick_width / 2), center_y - (stick_height / 2) - stick_tall, paint);
-            }
-        }
-
         private void position(float pos_x, float pos_y) {
-            x = pos_x - (stick_width / 2);
-            y = pos_y - (stick_height / 2);
+            x = pos_x - (stickWidth / 2);
+            y = pos_y - (stickHeight / 2);
 
             // addition
             float vecPC_x = center_x - pos_x;
             float vecPC_y = center_y - pos_y;
-            s_x = pos_x - (shadow_width / 2) + vecPC_x / 3;
-            s_y = pos_y - (shadow_height / 2) + vecPC_y / 3;
+            s_x = pos_x - (shadowWidth / 2) + vecPC_x / 3;
+            s_y = pos_y - (shadowHeight / 2) + vecPC_y / 3;
             // end
         }
     }

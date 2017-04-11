@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
 //        setContentView(R.layout.main);
 //        originalCode();
         setContentView(R.layout.activity_main);
+        Log.d("Main", "set content");
 
         textView1 = (TextView)findViewById(R.id.textView1);
         textView2 = (TextView)findViewById(R.id.textView2);
