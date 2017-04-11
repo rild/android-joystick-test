@@ -9,3 +9,9 @@
 ### コピー 20170410
 
 [<img width=350 src="https://gyazo.com/e1be98a0ab3aca90676163674fd27bfb.png">](https://youtu.be/FuGfqBKRkes)
+
+# 開発ログ
+
+`isInEditMode()`
+
+http://tech.admax.ninja/2014/10/06/how-to-avoid-the-exception-of-preview-when-customview/

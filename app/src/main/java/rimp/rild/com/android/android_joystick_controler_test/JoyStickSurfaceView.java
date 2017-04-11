@@ -76,6 +76,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         surfaceHolder = getHolder();
         surfaceHolder.addCallback(this);
         surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
+        if (!isInEditMode()) setZOrderOnTop(true);
 
         res = context.getResources();
         registerBitmapImages(res);

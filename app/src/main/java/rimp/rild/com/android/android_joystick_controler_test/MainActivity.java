@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         textView5 = (TextView)findViewById(R.id.textView5);
 
         mJoyStick = (JoyStickSurfaceView) findViewById(R.id.main_joystick);
-        mJoyStick.setZOrderOnTop(true);
+//        mJoyStick.setZOrderOnTop(true);
         mJoyStick.setOn8DirectListener(new JoyStickSurfaceView.On8DirectListener() {
             @Override
             public void onUpRight() {
