@@ -65,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onNone() {
-//                mJoyStick.setStickState(JoyStick2.JoyStickEvent.STICK_NONE);
                 textView5.setText("Direction : Center");
             }
 

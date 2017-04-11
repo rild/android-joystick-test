@@ -32,11 +32,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private int OFFSET_SHADOW = 0; // addition by rild
 
     private Context mContext;
-    //    private ViewGroup.LayoutParams params;
+    private ViewGroup.LayoutParams params;
     private int width, height;
     private int stick_width, stick_height;
     private int shadow_width, shadow_height; // addition by rild
-    ViewGroup.LayoutParams params;
     private int position_x = 0, position_y = 0, min_distance = 0;
     private float distance = 0, angle = 0;
 
