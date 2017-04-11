@@ -16,9 +16,92 @@ public class MainActivity extends AppCompatActivity {
 
     JoyStick2 js;
     ImageView joystickSignal;
+    ImageView[] signals = new ImageView[4];
+
+    JoyStickSurfaceView mJoyStick;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        setContentView(R.layout.main);
+//        originalCode();
+        setContentView(R.layout.activity_main);
+
+        textView1 = (TextView)findViewById(R.id.textView1);
+        textView2 = (TextView)findViewById(R.id.textView2);
+        textView3 = (TextView)findViewById(R.id.textView3);
+        textView4 = (TextView)findViewById(R.id.textView4);
+        textView5 = (TextView)findViewById(R.id.textView5);
+
+        mJoyStick = (JoyStickSurfaceView) findViewById(R.id.main_joystick);
+        mJoyStick.setZOrderOnTop(true);
+        mJoyStick.setOn8DirectListener(new JoyStickSurfaceView.On8DirectListener() {
+            @Override
+            public void onUpRight() {
+                textView5.setText("Direction : Up Right");
+            }
+
+            @Override
+            public void onDownRight() {
+                textView5.setText("Direction : Down Right");
+            }
+
+            @Override
+            public void onDownLeft() {
+                textView5.setText("Direction : Down Left");
+            }
+
+            @Override
+            public void onUpLeft() {
+                textView5.setText("Direction : Up Left");
+            }
+
+            @Override
+            public void onDirect(int posX, int posY, float angle, float distance) {
+                textView1.setText("X : " + String.valueOf(posX));
+                textView2.setText("Y : " + String.valueOf(posY));
+                textView3.setText("Angle : " + String.valueOf(angle));
+                textView4.setText("Distance : " + String.valueOf(distance));
+            }
+
+            @Override
+            public void onNone() {
+//                mJoyStick.setStickState(JoyStick2.JoyStickEvent.STICK_NONE);
+                textView5.setText("Direction : Center");
+            }
+
+            @Override
+            public void onUp() {
+                textView5.setText("Direction : Up");
+                Log.d("Action", "up");
+            }
+
+            @Override
+            public void onRight() {
+                textView5.setText("Direction : Right");
+            }
+
+            @Override
+            public void onDown() {
+                textView5.setText("Direction : Down");
+            }
+
+            @Override
+            public void onLeft() {
+                textView5.setText("Direction : Left");
+            }
+
+            @Override
+            public void onFinish() {
+                textView1.setText("X :");
+                textView2.setText("Y :");
+                textView3.setText("Angle :");
+                textView4.setText("Distance :");
+                textView5.setText("Direction :");
+            }
+        });
+    }
+
+    private void originalCode() {
         setContentView(R.layout.main);
 
         textView1 = (TextView)findViewById(R.id.textView1);
@@ -26,6 +109,11 @@ public class MainActivity extends AppCompatActivity {
         textView3 = (TextView)findViewById(R.id.textView3);
         textView4 = (TextView)findViewById(R.id.textView4);
         textView5 = (TextView)findViewById(R.id.textView5);
+
+        signals[0] = (ImageView) findViewById(R.id.signal_layer_up);
+        signals[1] = (ImageView) findViewById(R.id.signal_layer_right);
+        signals[2] = (ImageView) findViewById(R.id.signal_layer_down);
+        signals[3] = (ImageView) findViewById(R.id.signal_layer_left);
 
         layout_joystick = (RelativeLayout)findViewById(R.id.layout_joystick);
         joystickSignal = (ImageView) findViewById(R.id.signal_layer);
@@ -65,38 +153,59 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onNone() {
-                if (joystickSignal != null) joystickSignal.setBackgroundResource(0);
+//                if (joystickSignal != null) joystickSignal.setBackgroundResource(0);
+                resetSignals();
+//                resetSignals(js.getStickState());
+                js.setStickState(JoyStick2.JoyStickEvent.STICK_NONE);
                 textView5.setText("Direction : Center");
             }
 
             @Override
             public void onUp() {
                 textView5.setText("Direction : Up");
-                if (joystickSignal != null) joystickSignal.setBackgroundResource(R.drawable.signal_up);
+//                if (joystickSignal != null) joystickSignal.setBackgroundResource(R.drawable.signal_up);
+                resetSignals();
+//                resetSignals(js.getStickState());
+                js.setStickState(JoyStick2.JoyStickEvent.STICK_NONE);
+                signals[0].setVisibility(View.VISIBLE);
                 Log.d("Action", "up");
             }
 
             @Override
             public void onRight() {
-                if (joystickSignal != null) joystickSignal.setBackgroundResource(R.drawable.signal_right);
+//                if (joystickSignal != null) joystickSignal.setBackgroundResource(R.drawable.signal_right);
+                resetSignals();
+//                resetSignals(js.getStickState());
+                js.setStickState(JoyStick2.JoyStickEvent.STICK_RIGHT);
+                signals[1].setVisibility(View.VISIBLE);
                 textView5.setText("Direction : Right");
             }
 
             @Override
             public void onDown() {
-                if (joystickSignal != null) joystickSignal.setBackgroundResource(R.drawable.signal_down);
+//                if (joystickSignal != null) joystickSignal.setBackgroundResource(R.drawable.signal_down);
+                resetSignals(js.getStickState());
+                js.setStickState(JoyStick2.JoyStickEvent.STICK_DOWN);
+                signals[2].setVisibility(View.VISIBLE);
                 textView5.setText("Direction : Down");
             }
 
             @Override
             public void onLeft() {
-                if (joystickSignal != null) joystickSignal.setBackgroundResource(R.drawable.signal_left);
+//                if (joystickSignal != null) joystickSignal.setBackgroundResource(R.drawable.signal_left);
+                resetSignals();
+//                resetSignals(js.getStickState());
+                js.setStickState(JoyStick2.JoyStickEvent.STICK_LEFT);
+                signals[3].setVisibility(View.VISIBLE);
                 textView5.setText("Direction : Left");
             }
 
             @Override
             public void onFinish() {
-                if (joystickSignal != null) joystickSignal.setBackgroundResource(0);
+//                if (joystickSignal != null) joystickSignal.setBackgroundResource(0);
+                resetSignals();
+//                resetSignals(js.getStickState());
+                js.setStickState(JoyStick2.JoyStickEvent.STICK_NONE);
                 textView1.setText("X :");
                 textView2.setText("Y :");
                 textView3.setText("Angle :");
@@ -152,5 +261,28 @@ public class MainActivity extends AppCompatActivity {
 //                return true;
 //            }
 //        });
+    }
+
+    private void resetSignals() {
+        for (int i = 0; i < signals.length; i++) {
+            signals[i].setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void resetSignals(JoyStick2.JoyStickEvent event) {
+        switch (event) {
+            case STICK_UP:
+                signals[0].setVisibility(View.INVISIBLE);
+                break;
+            case STICK_RIGHT:
+                signals[1].setVisibility(View.INVISIBLE);
+                break;
+            case STICK_DOWN:
+                signals[2].setVisibility(View.INVISIBLE);
+                break;
+            case STICK_LEFT:
+                signals[3].setVisibility(View.INVISIBLE);
+                break;
+        }
     }
 }

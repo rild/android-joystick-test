@@ -47,6 +47,13 @@ public class JoyStick2 {
     private On8DirectListener on8DirectListener;
     private On4DirectListener on4DirectListener;
 
+    public void setStickState(JoyStickEvent stickState) {
+        this.stickState = stickState;
+    }
+
+    public JoyStickEvent getStickState() {
+        return stickState;
+    }
 
     public void init() {
         setLayoutSize(500, 500);

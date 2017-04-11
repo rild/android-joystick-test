@@ -10,12 +10,54 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="rimp.rild.com.android.android_joystick_controler_test.MainActivity">
 
-    <TextView
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="30dp"
+        android:orientation="vertical" >
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="X"
+            android:textColor="#444444"
+            android:textSize="20dp" />
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Y"
+            android:textColor="#444444"
+            android:textSize="20dp" />
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Angle"
+            android:textColor="#444444"
+            android:textSize="20dp" />
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Distance"
+            android:textColor="#444444"
+            android:textSize="20dp" />
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Direction"
+            android:textColor="#444444"
+            android:textSize="20dp" />
+    </LinearLayout>
 
-    <rimp.rild.com.android.android_joystick_controler_test.JoyStickView
-        android:layout_width="500dp"
-        android:layout_height="500dp"></rimp.rild.com.android.android_joystick_controler_test.JoyStickView>
+    <rimp.rild.com.android.android_joystick_controler_test.JoyStickSurfaceView
+        android:id="@+id/main_joystick"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

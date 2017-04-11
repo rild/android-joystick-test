@@ -55,8 +55,28 @@
         android:layout_marginTop="29dp"
         android:background="@drawable/joystick_base" >
         <ImageView
-            android:id="@+id/signal_layer"
+            android:id="@+id/signal_layer_up"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+
+            android:visibility="invisible"/>
+        <ImageView
+            android:id="@+id/signal_layer_right"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:visibility="invisible"/>
+        <ImageView
+            android:id="@+id/signal_layer_down"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:visibility="invisible"/>
+        <ImageView
+            android:id="@+id/signal_layer_left"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:visibility="invisible"/>
     </RelativeLayout>
 </RelativeLayout>
