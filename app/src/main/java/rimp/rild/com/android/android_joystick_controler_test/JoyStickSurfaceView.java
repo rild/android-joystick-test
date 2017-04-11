@@ -22,16 +22,17 @@ import android.view.ViewGroup;
  */
 
 public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-    private SurfaceHolder surfaceHolder;
-
-    private int STICK_ALPHA = 200;
-    private int LAYOUT_ALPHA = 200;
-    private int OFFSET = 0;
     private final int DENO_RATE_STICK_TALL_TO_SIZE = 25;
+
     private final int DENO_RATE_STICK_SIZE_TO_PAD = 2;
     private final int MARGIN_SHADOW = 32;
     private final int DENO_RATE_OFFSET_TO_PAD = 3;
     private final int DENO_RATE_MIN_DISTANCE_TO_PAD = 12;
+    private int STICK_ALPHA = 200;
+    private int LAYOUT_ALPHA = 200;
+    private int OFFSET = 0;
+
+    private SurfaceHolder surfaceHolder;
 
     //    private Context mContext;
     private ViewGroup.LayoutParams params;
@@ -42,6 +43,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private float distance = 0, angle = 0;
 
     private JoyStick jsEntity; // joy stick entity
+
     private Paint alphaSignal;
     private Paint alphaBackground;
     private Paint alphaStick;
@@ -56,19 +58,12 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private Bitmap signalLeft;
 
     private boolean isTouched = false;
+    private boolean shouldDrawShadow = true;
+
     private JoyStickEvent stickState = JoyStickEvent.NONE;
 
     private On8DirectListener on8DirectListener;
     private On4DirectListener on4DirectListener;
-
-    public void setOn4DirectListener(On4DirectListener on4DirectListener) {
-        this.on4DirectListener = on4DirectListener;
-    }
-
-    public void setOn8DirectListener(On8DirectListener on8DirectListener) {
-        this.on8DirectListener = on8DirectListener;
-        this.on4DirectListener = on8DirectListener;
-    }
 
     public JoyStickSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -115,19 +110,104 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     }
 
+    private void registerScreenSize() {
+        params = new ViewGroup.LayoutParams(getWidth(), getHeight());
+    }
+
+    private void registerOnTouchEvent() {
+        setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Log.d("Event", "touch event");
+                Canvas canvas = surfaceHolder.lockCanvas();
+                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                drawBackground(canvas);
+                drawStick(canvas, event);
+                surfaceHolder.unlockCanvasAndPost(canvas);
+
+                if (on4DirectListener == null) return true; // at least, it's necessary to set on4Direct function
+
+                if (event.getAction() == MotionEvent.ACTION_DOWN
+                        || event.getAction() == MotionEvent.ACTION_MOVE) {
+                    on4DirectListener.onDirect(getPosX(), getPosY(), getAngle(), getDistance());
+
+                    if (distance > minDistance && isTouched) {
+                        if (angle >= 247.5 && angle < 292.5) {
+                            // STICK_UP;
+                            on4DirectListener.onUp();
+                            stickState = JoyStickEvent.UP;
+                        } else if (angle >= 292.5 && angle < 337.5) {
+                            // STICK_UPRIGHT;
+                            if (on8DirectListener != null) on8DirectListener.onUpRight();
+                            stickState = JoyStickEvent.UPRIGHT;
+                        } else if (angle >= 337.5 || angle < 22.5) {
+                            // STICK_RIGHT;
+                            on4DirectListener.onRight();
+                            stickState = JoyStickEvent.RIGHT;
+                        } else if (angle >= 22.5 && angle < 67.5) {
+                            // STICK_DOWNRIGHT;
+                            if (on8DirectListener != null) on8DirectListener.onDownRight();
+                            stickState = JoyStickEvent.DOWNRIGHT;
+                        } else if (angle >= 67.5 && angle < 112.5) {
+                            // STICK_DOWN;
+                            on4DirectListener.onDown();
+                            stickState = JoyStickEvent.DOWN;
+                        } else if (angle >= 112.5 && angle < 157.5) {
+                            // STICK_DOWNLEFT;
+                            if (on8DirectListener != null) on8DirectListener.onDownLeft();
+                            stickState = JoyStickEvent.DOWNLEFT;
+                        } else if (angle >= 157.5 && angle < 202.5) {
+                            // STICK_LEFT;
+                            on4DirectListener.onLeft();
+                            stickState = JoyStickEvent.LEFT;
+                        } else if (angle >= 202.5 && angle < 247.5) {
+                            // STICK_UPLEFT;
+                            if (on8DirectListener != null) on8DirectListener.onUpLeft();
+                            stickState = JoyStickEvent.UPLEFT;
+                        }
+                    } else if (distance <= minDistance && isTouched) {
+                        // STICK_NONE;
+                        on4DirectListener.onNone();
+                        stickState = JoyStickEvent.NONE;
+                    }
+
+                } else {
+                    on4DirectListener.onFinish();
+                    stickState = JoyStickEvent.NONE;
+                }
+                return true;
+            }
+        });
+    }
+
+    public void registerLayoutCenter(int width, int height) {
+        jsEntity.center_x = width / 2;
+        jsEntity.center_y = height / 2;
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        init();
+        Canvas canvas = surfaceHolder.lockCanvas();
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        drawBackground(canvas);
+        drawStick(canvas);
+        surfaceHolder.unlockCanvasAndPost(canvas);
+    }
+
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 
     }
 
-    private void registerScreenSize() {
-        params = new ViewGroup.LayoutParams(getWidth(), getHeight());
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
     }
 
     private void init() {
 //        Log.d("Params", "" + getWidth() + ", " + getHeight());
         registerScreenSize();
-
         registerLayoutCenter(params.width, params.height);
 
         // default
@@ -151,99 +231,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         resizeImages();
     }
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-//        params = getLayoutParams();
-        Log.d("created", "surfaceCreated");
-        init();
-        Canvas canvas = surfaceHolder.lockCanvas();
-        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        drawBackground(canvas);
-        drawStick(canvas);
-        surfaceHolder.unlockCanvasAndPost(canvas);
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-
-    }
-
-    private void registerOnTouchEvent() {
-        setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                Log.d("Event", "touch event");
-                Canvas canvas = surfaceHolder.lockCanvas();
-                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                drawBackground(canvas);
-                drawStick(canvas, event);
-                surfaceHolder.unlockCanvasAndPost(canvas);
-
-                if (on4DirectListener == null) return true;
-
-                if (event.getAction() == MotionEvent.ACTION_DOWN
-                        || event.getAction() == MotionEvent.ACTION_MOVE) {
-                    on4DirectListener.onDirect(getPosX(), getPosY(), getAngle(), getDistance());
-
-                    if (distance > minDistance && isTouched) {
-                        if (angle >= 247.5 && angle < 292.5) {
-                            // STICK_UP;
-                            on4DirectListener.onUp();
-                            stickState = JoyStickEvent.UP;
-                        } else if (angle >= 292.5 && angle < 337.5) {
-                            // STICK_UPRIGHT;
-                            if (on8DirectListener != null) on8DirectListener.onUpRight();
-                        } else if (angle >= 337.5 || angle < 22.5) {
-                            // STICK_RIGHT;
-                            on4DirectListener.onRight();
-                            stickState = JoyStickEvent.RIGHT;
-                        } else if (angle >= 22.5 && angle < 67.5) {
-                            // STICK_DOWNRIGHT;
-                            if (on8DirectListener != null) on8DirectListener.onDownRight();
-                        } else if (angle >= 67.5 && angle < 112.5) {
-                            // STICK_DOWN;
-                            on4DirectListener.onDown();
-                            stickState = JoyStickEvent.DOWN;
-                        } else if (angle >= 112.5 && angle < 157.5) {
-                            // STICK_DOWNLEFT;
-                            if (on8DirectListener != null) on8DirectListener.onDownLeft();
-                        } else if (angle >= 157.5 && angle < 202.5) {
-                            // STICK_LEFT;
-                            on4DirectListener.onLeft();
-                            stickState = JoyStickEvent.LEFT;
-                        } else if (angle >= 202.5 && angle < 247.5) {
-                            // STICK_UPLEFT;
-                            if (on8DirectListener != null) on8DirectListener.onUpLeft();
-                        }
-                    } else if (distance <= minDistance && isTouched) {
-                        // STICK_NONE;
-                        on4DirectListener.onNone();
-                    }
-
-                } else {
-                    on4DirectListener.onFinish();
-                }
-                return true;
-            }
-        });
-    }
-
-    public int getPosX() {
-        if (distance > minDistance && isTouched) {
-            return positionX;
-        }
-        return 0;
-    }
-
-    public int getPosY() {
-        if (distance > minDistance && isTouched) {
-            return positionY;
-        }
-        return 0;
-    }
-
     public void drawBackground(Canvas canvas) {
-        // now lets draw using alphaPaint instance
         canvas.drawBitmap(background, 0, 0, alphaBackground);
     }
 
@@ -307,12 +295,30 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private void drawStick(Canvas canvas) {
         if (isTouched) {
-            if (shadow != null) canvas.drawBitmap(shadow, jsEntity.s_x, jsEntity.s_y, alphaStick);
+            if (shadow != null && shouldDrawShadow) canvas.drawBitmap(shadow, jsEntity.s_x, jsEntity.s_y, alphaStick);
             canvas.drawBitmap(stick, jsEntity.x, jsEntity.y, alphaStick);
         } else {
-            if (shadow != null) canvas.drawBitmap(shadow, jsEntity.center_x - (shadowWidth / 2), jsEntity.center_y - (shadowHeight / 2) + stickTall, alphaStick);
+            if (shadow != null && shouldDrawShadow)
+                canvas.drawBitmap(shadow,
+                        jsEntity.center_x - (shadowWidth / 2),
+                        jsEntity.center_y - (shadowHeight / 2) + stickTall,
+                        alphaStick);
             canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2) - stickTall, alphaStick);
         }
+    }
+
+    public int getPosX() {
+        if (distance > minDistance && isTouched) {
+            return positionX;
+        }
+        return 0;
+    }
+
+    public int getPosY() {
+        if (distance > minDistance && isTouched) {
+            return positionY;
+        }
+        return 0;
     }
 
     public float getAngle() {
@@ -327,6 +333,26 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             return distance;
         }
         return 0;
+    }
+
+    public int getMinimumDistance() {
+        return minDistance;
+    }
+
+    public int getOffset() {
+        return OFFSET;
+    }
+
+    public int getLayoutAlpha() {
+        return LAYOUT_ALPHA;
+    }
+
+    public int getStickAlpha() {
+        return STICK_ALPHA;
+    }
+
+    public JoyStickEvent getStickState() {
+        return stickState;
     }
 
     private void resizeImages() {
@@ -345,27 +371,12 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         stickHeight = height;
     }
 
-    public void registerLayoutCenter(int width, int height) {
-        // addition
-        jsEntity.center_x = width / 2;
-        jsEntity.center_y = height / 2;
-        // end
-    }
-
     public void setMinimumDistance(int minDistance) {
         this.minDistance = minDistance;
     }
 
-    public int getMinimumDistance() {
-        return minDistance;
-    }
-
     public void setOffset(int offset) {
         OFFSET = offset;
-    }
-
-    public int getOffset() {
-        return OFFSET;
     }
 
     public void setLayoutAlpha(int alpha) {
@@ -373,17 +384,9 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         alphaBackground.setAlpha(alpha);
     }
 
-    public int getLayoutAlpha() {
-        return LAYOUT_ALPHA;
-    }
-
     public void setStickAlpha(int alpha) {
         STICK_ALPHA = alpha;
         alphaStick.setAlpha(alpha);
-    }
-
-    public int getStickAlpha() {
-        return STICK_ALPHA;
     }
 
     public void setShadowSize(int width, int height) {
@@ -393,10 +396,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     public void setStickState(JoyStickEvent stickState) {
         this.stickState = stickState;
-    }
-
-    public JoyStickEvent getStickState() {
-        return stickState;
     }
 
     private double calAngle(float x, float y) {
@@ -409,6 +408,15 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         else if (x >= 0 && y < 0)
             return Math.toDegrees(Math.atan(y / x)) + 360;
         return 0;
+    }
+
+    public void setOn4DirectListener(On4DirectListener on4DirectListener) {
+        this.on4DirectListener = on4DirectListener;
+    }
+
+    public void setOn8DirectListener(On8DirectListener on8DirectListener) {
+        this.on8DirectListener = on8DirectListener;
+        this.on4DirectListener = on8DirectListener;
     }
 
     interface On8DirectListener extends On4DirectListener {
@@ -451,19 +459,18 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     class JoyStick {
         float x, y;
-        float s_x, s_y;
-        float center_x, center_y;
+        float s_x, s_y; // shadow
+        float center_x, center_y; // center
 
         private void position(float pos_x, float pos_y) {
             x = pos_x - (stickWidth / 2);
             y = pos_y - (stickHeight / 2);
 
-            // addition
+            // vecPC : position - center vec
             float vecPC_x = center_x - pos_x;
             float vecPC_y = center_y - pos_y;
             s_x = pos_x - (shadowWidth / 2) + vecPC_x / 3;
             s_y = pos_y - (shadowHeight / 2) + vecPC_y / 3;
-            // end
         }
     }
 }
