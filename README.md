@@ -15,3 +15,19 @@
 `isInEditMode()`
 
 http://tech.admax.ninja/2014/10/06/how-to-avoid-the-exception-of-preview-when-customview/
+
+
+## メモリ
+
+ヒープ領域使っちゃう？
+http://qiita.com/kazuqqfp/items/caeea59df51802479253
+44.86 MB/ 57.74 MB
+コントローラーだけでこれはまずいでしょ...
+
+<img src="https://gyazo.com/2fa06d4fb15ab37699c7e4e50a5f9080.png" />
+
+リサイズ後のアドレスをリリースした (signal on)
+
+
+
+
