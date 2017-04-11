@@ -167,7 +167,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
                 if (event.getAction() == MotionEvent.ACTION_DOWN
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
-                    on4DirectListener.onDirect((int) getX(), (int) getY(), getAngle(), getDistance());
+                    on4DirectListener.onDirect(getPosX(), getPosY(), getAngle(), getDistance());
 
                     if (distance > min_distance && isTouched) {
                         if (angle >= 247.5 && angle < 292.5) {
@@ -211,6 +211,20 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 return true;
             }
         });
+    }
+
+    public int getPosX() {
+        if (distance > min_distance && isTouched) {
+            return position_x;
+        }
+        return 0;
+    }
+
+    public int getPosY() {
+        if (distance > min_distance && isTouched) {
+            return position_y;
+        }
+        return 0;
     }
 
     public void drawBackground(Canvas canvas) {
