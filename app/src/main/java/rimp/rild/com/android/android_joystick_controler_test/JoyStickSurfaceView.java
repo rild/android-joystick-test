@@ -298,12 +298,15 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             if (shadow != null && shouldDrawShadow) canvas.drawBitmap(shadow, jsEntity.s_x, jsEntity.s_y, alphaStick);
             canvas.drawBitmap(stick, jsEntity.x, jsEntity.y, alphaStick);
         } else {
-            if (shadow != null && shouldDrawShadow)
+            if (shadow != null && shouldDrawShadow) {
                 canvas.drawBitmap(shadow,
                         jsEntity.center_x - (shadowWidth / 2),
                         jsEntity.center_y - (shadowHeight / 2) + stickTall,
                         alphaStick);
-            canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2) - stickTall, alphaStick);
+                canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2) - stickTall, alphaStick);
+            } else {
+                canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2), alphaStick);
+            }
         }
     }
 
@@ -355,6 +358,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         return stickState;
     }
 
+    public boolean isShadowVisible() {
+        return shouldDrawShadow;
+    }
+
     private void resizeImages() {
         if (shadow != null)
             shadow = Bitmap.createScaledBitmap(shadow, shadowWidth, shadowHeight, false);
@@ -392,6 +399,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     public void setShadowSize(int width, int height) {
         this.shadowWidth = width;
         this.shadowHeight = height;
+    }
+
+    public void setShadowVisiblity(boolean shouldDrawShadow) {
+        this.shouldDrawShadow = shouldDrawShadow;
     }
 
     public void setStickState(JoyStickEvent stickState) {
