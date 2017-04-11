@@ -83,8 +83,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
         stickWidth = stick.getWidth();
         stickHeight = stick.getHeight();
-        shadowWidth = shadow.getWidth();
-        shadowHeight = shadow.getHeight();
+        if (shadow != null) {
+            shadowWidth = shadow.getWidth();
+            shadowHeight = shadow.getHeight();
+        }
 
         alphaSignal = new Paint();
         alphaBackground = new Paint();
@@ -100,7 +102,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         stick = BitmapFactory.decodeResource(res,
                 R.drawable.s_joystick_stick);
         shadow = BitmapFactory.decodeResource(res,
-                R.drawable.s_joystick_shadow);
+                R.drawable.s_joystick_shadow); // if you remove shadow, you should also remove "stickTall" : stickTall = 0
 
         signalUp = BitmapFactory.decodeResource(res,
                 R.drawable.s_signal_up);
