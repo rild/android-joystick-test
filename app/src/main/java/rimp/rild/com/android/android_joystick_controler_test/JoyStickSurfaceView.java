@@ -593,27 +593,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private long calCurrentInterval() {
         long in = loopInterval;
-//        if (OFFSET >= distance) in = loopInterval;
         if (distance <= (params.width / 2) - OFFSET) in = loopInterval;
-//        else if (distance >= RANGE - params.height / 5) in = LOOP_INTERVAL_FASTEST;
         else if (distance > (params.width / 2) - OFFSET) in = loopFastInterval;
-//        else {
-//
-//            float xx_per_aa = (distance - OFFSET) * (distance - OFFSET) / RANGE / RANGE;
-//            Log.d("cal", "x^2/a^2:" + xx_per_aa);
-//            Log.d("cal", "1-x^2/a^2:" +
-//                    (1 - xx_per_aa));
-//            Log.d("cal", "root:" + Math.sqrt(
-//                    1 - xx_per_aa));
-//            Log.d("cal", "F:" + ((loopInterval - LOOP_INTERVAL_FASTEST)
-//                    * Math.sqrt(1 - xx_per_aa)
-//                    + LOOP_INTERVAL_FASTEST));
-//            in = (long) (
-//                    (loopInterval - LOOP_INTERVAL_FASTEST)
-//                            * Math.sqrt(1 - xx_per_aa)
-//                            + LOOP_INTERVAL_FASTEST);
-//
-//        }
         return in;
     }
 
