@@ -11,7 +11,6 @@ import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.os.Handler;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -139,13 +138,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 surfaceHolder.unlockCanvasAndPost(canvas);
 
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    Log.d("Long", "action down");
-                    Log.d("Long", "post callback" + onLongPushed + " to " + handlerOnLongPush);
                     handlerOnLongPush.postDelayed(onLongPushed, 1500);
                 }
 
                 if (stickState != JoyStickState.NONE) {
-                    Log.d("Long", "(" + stickState + ") rm callback" + onLongPushed + " to " + handlerOnLongPush);
                     handlerOnLongPush.removeCallbacks(onLongPushed);
                 }
 
@@ -312,7 +308,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     private void init() {
-//        Log.d("Params", "" + getWidth() + ", " + getHeight());
         registerScreenSize();
         registerLayoutCenter(params.width, params.height);
 
