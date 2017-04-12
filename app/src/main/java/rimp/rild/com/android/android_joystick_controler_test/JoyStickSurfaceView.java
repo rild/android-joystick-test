@@ -54,7 +54,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private int positionX = 0, positionY = 0, minDistance = 0;
     private float distance = 0, angle = 0;
 
-    private JoyStick jsEntity; // joy stick entity
+    private JoyStickEntity jsEntity; // joy stick entity
 
     private Paint alphaSignal;
     private Paint alphaBackground;
@@ -73,7 +73,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private boolean shouldDrawShadow = true;
     private boolean canUseSignal = true;
 
-    private JoyStickState stickState = JoyStickState.NONE;
+    private JoyStick stickState = JoyStick.NONE;
 
     private OnChangeStateListener onChangeStateListener;
 
@@ -118,7 +118,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         alphaSignal = new Paint();
         alphaBackground = new Paint();
         alphaStick = new Paint();
-        jsEntity = new JoyStick();
+        jsEntity = new JoyStickEntity();
 
         registerOnTouchEvent();
     }
@@ -138,7 +138,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
                 performPostLongPushEvent(event);
 
-                if (stickState != JoyStickState.NONE) {
+                if (stickState != JoyStick.NONE) {
                     handlerOnLongPush.removeCallbacks(onLongPushed);
                 }
 
@@ -146,7 +146,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
 
                     if (distance > minDistance && isTouched) {
-                        onChangeState(judge8DirectionEventWith(angle));
+                        performOnChangeState(judge8DirectionEventWith(angle));
                     } else if (distance <= minDistance && isTouched) {
                         // STICK_NONE;
                         performReleaseJoyStick();
@@ -165,7 +165,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     private void performReleaseJoyStick() {
-        stickState = JoyStickState.NONE;
+        setStickState(JoyStick.NONE);
+//        stickState = JoyStick.NONE;
         interruptJoyStickMoveThread();
         performOnJoyStickMove();
     }
@@ -176,65 +177,69 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         }
     }
 
-    private JoyStickState judge8DirectionEventWith(float angle) {
-        JoyStickState event = JoyStickState.NONE;
+    private JoyStick judge8DirectionEventWith(float angle) {
+        JoyStick state = JoyStick.NONE;
         if (angle >= 247.5 && angle < 292.5) {
             // STICK_UP;
-            return JoyStickState.UP;
+            return JoyStick.UP;
         } else if (angle >= 292.5 && angle < 337.5) {
             // STICK_UPRIGHT;
-            return JoyStickState.UPRIGHT;
+            return JoyStick.UPRIGHT;
         } else if (angle >= 337.5 || angle < 22.5) {
             // STICK_RIGHT;
-            return JoyStickState.RIGHT;
+            return JoyStick.RIGHT;
         } else if (angle >= 22.5 && angle < 67.5) {
             // STICK_DOWNRIGHT;
-            return JoyStickState.DOWNRIGHT;
+            return JoyStick.DOWNRIGHT;
         } else if (angle >= 67.5 && angle < 112.5) {
             // STICK_DOWN;
-            return JoyStickState.DOWN;
+            return JoyStick.DOWN;
         } else if (angle >= 112.5 && angle < 157.5) {
             // STICK_DOWNLEFT;
-            return JoyStickState.DOWNLEFT;
+            return JoyStick.DOWNLEFT;
         } else if (angle >= 157.5 && angle < 202.5) {
             // STICK_LEFT;
-            return JoyStickState.LEFT;
+            return JoyStick.LEFT;
         } else if (angle >= 202.5 && angle < 247.5) {
             // STICK_UPLEFT;
-            return JoyStickState.UPLEFT;
+            return JoyStick.UPLEFT;
         }
-        return event;
+        return state;
     }
 
-    private void onChangeState(JoyStickState state) {
-        if (stickState != state) {
+    private void performOnChangeState(JoyStick next) {
+        if (stickState != next) {
             // change from other state
+            performOnChangeStateFromOthers();
+        }
+        setStickState(next);
+//        stickState = state;
+    }
 
-            if (threadJoyStickMove != null && threadJoyStickMove.isAlive()) {
-                threadJoyStickMove.interrupt();
-            }
-            threadJoyStickMove = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (!Thread.interrupted()) {
-                        // why post ?
-                        post(new Runnable() {
-                            public void run() {
-                                performOnJoyStickMove();
-                            }
-                        });
-                        try {
-                            sleepJoyStick();
-                        } catch (InterruptedException e) {
-                            break;
+    private void performOnChangeStateFromOthers() {
+        if (threadJoyStickMove != null && threadJoyStickMove.isAlive()) {
+            threadJoyStickMove.interrupt();
+        }
+        threadJoyStickMove = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!Thread.interrupted()) {
+                    // why post ?
+                    post(new Runnable() {
+                        public void run() {
+                            performOnJoyStickMove();
                         }
+                    });
+                    try {
+                        sleepJoyStick();
+                    } catch (InterruptedException e) {
+                        break;
                     }
                 }
-            });
-            threadJoyStickMove.start();
-            performOnJoyStickMove();
-        }
-        stickState = state;
+            }
+        });
+        threadJoyStickMove.start();
+        performOnJoyStickMove();
     }
 
     private void sleepJoyStick() throws InterruptedException{
@@ -254,7 +259,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         if (threadJoyStickMove != null) threadJoyStickMove.interrupt();
     }
 
-    public void registerLayoutCenter(int width, int height) {
+    private void registerLayoutCenter(int width, int height) {
         jsEntity.center_x = width / 2;
         jsEntity.center_y = height / 2;
     }
@@ -348,7 +353,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         drawBackground(canvas);
     }
 
-    public void drawStick(Canvas canvas, MotionEvent event) {
+    private void drawStick(Canvas canvas, MotionEvent event) {
         positionX = (int) (event.getX() - (params.width / 2));
         positionY = (int) (event.getY() - (params.height / 2));
         distance = (float) Math.sqrt(Math.pow(positionX, 2) + Math.pow(positionY, 2));
@@ -408,7 +413,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         drawStick(canvas);
     }
 
-    public void drawBackground(Canvas canvas) {
+    private void drawBackground(Canvas canvas) {
         canvas.drawBitmap(background, 0, 0, alphaBackground);
     }
 
@@ -484,7 +489,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         return ALPHA_SIGNAL;
     }
 
-    public JoyStickState getStickState() {
+    public JoyStick getStickState() {
         return stickState;
     }
 
@@ -515,6 +520,11 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private Bitmap resizeImage(final Bitmap original, int targetWidth, int targetHeight) {
         return Bitmap.createScaledBitmap(original, targetWidth, targetHeight, false);
+    }
+
+    private void setStickState(JoyStick next) {
+        if (next != this.stickState) onChangeStateListener.onChangeState(next, this.stickState);
+        this.stickState = next;
     }
 
     public void setStickSize(int width, int height) {
@@ -595,6 +605,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         this.onLongPushListener = onLongPushListener;
     }
 
+    public void setOnChangeStateListener(OnChangeStateListener onChangeStateListener) {
+        this.onChangeStateListener = onChangeStateListener;
+    }
+
     private long calCurrentInterval() {
         long in = loopInterval;
         if (distance <= (params.width / 2) - OFFSET) in = loopInterval;
@@ -602,16 +616,16 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         return in;
     }
 
-    interface OnLongPushListener {
+    public interface OnLongPushListener {
         void onLongPush();
     }
 
-    interface OnChangeStateListener {
-        void onChangeState(JoyStickState next, JoyStickState previous);
+    public interface OnChangeStateListener {
+        void onChangeState(JoyStick next, JoyStick previous);
     }
 
     public interface OnJoystickMoveListener {
-        void onValueChanged(float angle, float power, JoyStickState direction);
+        void onValueChanged(float angle, float power, JoyStick direction);
     }
 
     // seems to cause ERROR
@@ -619,7 +633,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 //        void onValueChanged(float angle, float power, JoyStickState direction);
 //    }
 
-    enum JoyStickState {
+    enum JoyStick {
         NONE,
         UP,
         UPRIGHT,
@@ -631,7 +645,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         UPLEFT;
     }
 
-    class JoyStick {
+    class JoyStickEntity {
         float x, y;
         float s_x, s_y; // shadow
         float center_x, center_y; // center

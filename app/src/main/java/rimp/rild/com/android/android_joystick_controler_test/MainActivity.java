@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
         mJoyStick.setOnJoyStickMoveListener(new JoyStickSurfaceView.OnJoystickMoveListener() {
             @Override
-            public void onValueChanged(float angle, float power, JoyStickSurfaceView.JoyStickState direction) {
+            public void onValueChanged(float angle, float power, JoyStickSurfaceView.JoyStick direction) {
                 // TODO Auto-generated method stub
                 mTextViewAngle.setText(" " + String.valueOf(angle) + "°");
                 mTextViewDistance.setText(" " + String.valueOf(power) + "%");
@@ -96,6 +96,13 @@ public class MainActivity extends AppCompatActivity {
             public void onLongPush() {
                 Log.d("MainEvent", "long pushed");
                 mTextViewDirection.setText("Joy Stick Long Pushed!");
+            }
+        });
+
+        mJoyStick.setOnChangeStateListener(new JoyStickSurfaceView.OnChangeStateListener() {
+            @Override
+            public void onChangeState(JoyStickSurfaceView.JoyStick next, JoyStickSurfaceView.JoyStick previous) {
+                if (testCount > 1) testCount = 0;
             }
         });
     }
