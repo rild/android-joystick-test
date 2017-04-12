@@ -556,10 +556,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         }
     }
 
-    public void setStickState(JoyStickState stickState) {
-        this.stickState = stickState;
-    }
-
     private double calAngle(float x, float y) {
         if (x >= 0 && y >= 0)
             return Math.toDegrees(Math.atan(y / x));
