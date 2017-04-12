@@ -115,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
                 switch (direction) {
                     case UP:
                         testCount++;
-                        Log.d("MainEvent", "up");
                         mTextViewDirection.setText(
                                 getResources().getString(R.string.front_lab) + " C:" + testCount);
                         break;
@@ -157,5 +156,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }, JoyStickSurfaceView.LOOP_INTERVAL_SLOW, JoyStickSurfaceView.LOOP_INTERVAL_FAST);
+
+        mJoyStick.setOnLongPushListener(new JoyStickSurfaceView.OnLongPushListener() {
+            @Override
+            public void onLongPush() {
+                Log.d("MainEvent", "long pushed");
+                mTextViewDirection.setText("Joy Stick Long Pushed!");
+            }
+        });
     }
 }
