@@ -22,7 +22,7 @@ import android.view.ViewGroup;
  */
 
 public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-    private final int TIME_LONG_ACTIVATE = 1500;
+    private final int TIME_LONG_PUSH_EVENT_ACTIVATE = 1500;
     private final int DENO_RATE_STICK_TALL_TO_SIZE = 25;
 
     private final int DENO_RATE_STICK_SIZE_TO_PAD = 2;
@@ -136,9 +136,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 drawStick(canvas, event);
                 surfaceHolder.unlockCanvasAndPost(canvas);
 
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    handlerOnLongPush.postDelayed(onLongPushed, 1500);
-                }
+                performPostLongPushEvent(event);
 
                 if (stickState != JoyStickState.NONE) {
                     handlerOnLongPush.removeCallbacks(onLongPushed);
@@ -151,25 +149,31 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         onChangeState(judge8DirectionEvent(angle));
                     } else if (distance <= minDistance && isTouched) {
                         // STICK_NONE;
-                        stickState = JoyStickState.NONE;
-
-                        interruptJoyStickMoveThread();
-                        performOnJoyStickMove();
-
+                        performReleaseJoyStick();
                     }
 
                 } else {
 //                    if (on4DirectListener != null) on4DirectListener.onFinish();
-                    stickState = JoyStickState.NONE;
 
                     handlerOnLongPush.removeCallbacks(onLongPushed);
 
-                    interruptJoyStickMoveThread();
-                    performOnJoyStickMove();
+                    performReleaseJoyStick();
                 }
                 return true;
             }
         });
+    }
+
+    private void performReleaseJoyStick() {
+        stickState = JoyStickState.NONE;
+        interruptJoyStickMoveThread();
+        performOnJoyStickMove();
+    }
+
+    private void performPostLongPushEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            handlerOnLongPush.postDelayed(onLongPushed, TIME_LONG_PUSH_EVENT_ACTIVATE);
+        }
     }
 
     private JoyStickState judge8DirectionEvent(float angle) {
