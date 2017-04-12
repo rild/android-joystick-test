@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -21,7 +22,8 @@ import android.view.ViewGroup;
  * Created by rild on 2017/04/10.
  */
 
-public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
+public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
+    private final int TIME_LONG_ACTIVATE = 1500;
     private final int DENO_RATE_STICK_TALL_TO_SIZE = 25;
 
     private final int DENO_RATE_STICK_SIZE_TO_PAD = 2;
@@ -62,11 +64,16 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private boolean shouldDrawShadow = true;
     private boolean canUseSignal = true;
 
-    private JoyStickEvent stickState = JoyStickEvent.NONE;
+    private JoyStickState stickState = JoyStickState.NONE;
 
     private On8DirectListener on8DirectListener;
     private On4DirectListener on4DirectListener;
     private OnChangeStateListener onChangeStateListener;
+
+    public final static long DEFAULT_LOOP_INTERVAL = 1000; // original 100 ms
+    private OnJoystickMoveListener onJoystickMoveListener; // Listener
+    private Thread thread = new Thread(this);
+    private long loopInterval = DEFAULT_LOOP_INTERVAL;
 
     public JoyStickSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -108,14 +115,14 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 drawStick(canvas, event);
                 surfaceHolder.unlockCanvasAndPost(canvas);
 
-                if (on4DirectListener == null)
-                    return true; // at least, it's necessary to set on4Direct function
-
                 if (event.getAction() == MotionEvent.ACTION_DOWN
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
-                    on4DirectListener.onDirect(getPosX(), getPosY(), getAngle(), getDistance());
+
+                    if (on4DirectListener != null)
+                        on4DirectListener.onDirect(getPosX(), getPosY(), getAngle(), getDistance());
 
                     if (distance > minDistance && isTouched) {
+
                         switch (judge8DirectionEvent(angle)) {
                             case UP:
                                 onUp();
@@ -144,95 +151,125 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         }
                     } else if (distance <= minDistance && isTouched) {
                         // STICK_NONE;
-                        on4DirectListener.onNone();
-                        stickState = JoyStickEvent.NONE;
+                        if (on4DirectListener != null) on4DirectListener.onNone();
+                        stickState = JoyStickState.NONE;
+//                        handlerLongDirection.removeCallbacks(mLongPressed);
+
+                        thread.interrupt();
+                        if (onJoystickMoveListener != null)
+                            onJoystickMoveListener.onValueChanged(getAngle(), getDistance(),
+                                    getStickState());
+
                     }
 
                 } else {
-                    on4DirectListener.onFinish();
-                    stickState = JoyStickEvent.NONE;
+                    if (on4DirectListener != null) on4DirectListener.onFinish();
+                    stickState = JoyStickState.NONE;
+//                    handlerLongDirection.removeCallbacks(mLongPressed);
+
+                    thread.interrupt();
+                    if (onJoystickMoveListener != null)
+                        onJoystickMoveListener.onValueChanged(getAngle(), getDistance(),
+                                getStickState());
                 }
                 return true;
             }
         });
     }
 
-    private JoyStickEvent judge8DirectionEvent(float angle) {
-        JoyStickEvent event = JoyStickEvent.NONE;
+    private JoyStickState judge8DirectionEvent(float angle) {
+        JoyStickState event = JoyStickState.NONE;
         if (angle >= 247.5 && angle < 292.5) {
             // STICK_UP;
-            return JoyStickEvent.UP;
+            return JoyStickState.UP;
         } else if (angle >= 292.5 && angle < 337.5) {
             // STICK_UPRIGHT;
-            return JoyStickEvent.UPRIGHT;
+            return JoyStickState.UPRIGHT;
         } else if (angle >= 337.5 || angle < 22.5) {
             // STICK_RIGHT;
-            return JoyStickEvent.RIGHT;
+            return JoyStickState.RIGHT;
         } else if (angle >= 22.5 && angle < 67.5) {
             // STICK_DOWNRIGHT;
-            return JoyStickEvent.DOWNRIGHT;
+            return JoyStickState.DOWNRIGHT;
         } else if (angle >= 67.5 && angle < 112.5) {
             // STICK_DOWN;
-            return JoyStickEvent.DOWN;
+            return JoyStickState.DOWN;
         } else if (angle >= 112.5 && angle < 157.5) {
             // STICK_DOWNLEFT;
-            return JoyStickEvent.DOWNLEFT;
+            return JoyStickState.DOWNLEFT;
         } else if (angle >= 157.5 && angle < 202.5) {
             // STICK_LEFT;
-            return JoyStickEvent.LEFT;
+            return JoyStickState.LEFT;
         } else if (angle >= 202.5 && angle < 247.5) {
             // STICK_UPLEFT;
-            return JoyStickEvent.UPLEFT;
+            return JoyStickState.UPLEFT;
         }
         return event;
     }
 
     private void onUp() {
-        if (stickState != JoyStickEvent.UP)
-            on4DirectListener.onUp();
-        stickState = JoyStickEvent.UP;
+        if (stickState != JoyStickState.UP) {
+            if (on4DirectListener != null) on4DirectListener.onUp();
+
+            if (thread != null && thread.isAlive()) {
+                thread.interrupt();
+            }
+            thread = new Thread(JoyStickSurfaceView.this);
+            thread.start();
+            if (onJoystickMoveListener != null)
+                onJoystickMoveListener.onValueChanged(getAngle(), getDistance(),
+                        getStickState());
+        }
+        stickState = JoyStickState.UP;
     }
 
     private void onUpRight() {
-        if (on8DirectListener != null && stickState != JoyStickEvent.UPRIGHT)
+        if (on8DirectListener != null && stickState != JoyStickState.UPRIGHT) {
             on8DirectListener.onUpRight();
-        stickState = JoyStickEvent.UPRIGHT;
+        }
+        stickState = JoyStickState.UPRIGHT;
     }
 
     private void onRight() {
-        if (stickState != JoyStickEvent.RIGHT)
-            on4DirectListener.onRight();
-        stickState = JoyStickEvent.RIGHT;
+        if (stickState != JoyStickState.RIGHT) {
+            if (on4DirectListener != null) on4DirectListener.onRight();
+        }
+        stickState = JoyStickState.RIGHT;
     }
 
     private void onDownRight() {
-        if (on8DirectListener != null && stickState != JoyStickEvent.DOWNRIGHT)
+        if (on8DirectListener != null && stickState != JoyStickState.DOWNRIGHT) {
             on8DirectListener.onDownRight();
-        stickState = JoyStickEvent.DOWNRIGHT;
+        }
+        stickState = JoyStickState.DOWNRIGHT;
     }
 
     private void onDown() {
-        if (stickState != JoyStickEvent.DOWN)
-            on4DirectListener.onDown();
-        stickState = JoyStickEvent.DOWN;
+        if (stickState != JoyStickState.DOWN) {
+            if (on4DirectListener != null) on4DirectListener.onDown();
+        }
+        stickState = JoyStickState.DOWN;
     }
 
     private void onDownLeft() {
-        if (on8DirectListener != null && stickState != JoyStickEvent.DOWNLEFT)
+        if (on8DirectListener != null && stickState != JoyStickState.DOWNLEFT) {
             on8DirectListener.onDownLeft();
-        stickState = JoyStickEvent.DOWNLEFT;
+        }
+        stickState = JoyStickState.DOWNLEFT;
     }
 
     private void onLeft() {
-        if (stickState != JoyStickEvent.LEFT)
-            on4DirectListener.onLeft();
-        stickState = JoyStickEvent.LEFT;
+        if (stickState != JoyStickState.LEFT) {
+            if (on4DirectListener != null) on4DirectListener.onLeft();
+        }
+        stickState = JoyStickState.LEFT;
     }
 
     private void onUpLeft() {
-        if (on8DirectListener != null && stickState != JoyStickEvent.UPLEFT)
+        if (on8DirectListener != null && stickState != JoyStickState.UPLEFT) {
             on8DirectListener.onUpLeft();
-        stickState = JoyStickEvent.UPLEFT;
+        }
+        stickState = JoyStickState.UPLEFT;
     }
 
     public void registerLayoutCenter(int width, int height) {
@@ -450,7 +487,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         return ALPHA_SIGNAL;
     }
 
-    public JoyStickEvent getStickState() {
+    public JoyStickState getStickState() {
         return stickState;
     }
 
@@ -479,7 +516,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
 
-    private Bitmap resizeImage(Bitmap original, int targetWidth, int targetHeight) {
+    private Bitmap resizeImage(final Bitmap original, int targetWidth, int targetHeight) {
         return Bitmap.createScaledBitmap(original, targetWidth, targetHeight, false);
     }
 
@@ -530,7 +567,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         }
     }
 
-    public void setStickState(JoyStickEvent stickState) {
+    public void setStickState(JoyStickState stickState) {
         this.stickState = stickState;
     }
 
@@ -546,6 +583,24 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         return 0;
     }
 
+    @Override
+    public void run() {
+        while (!Thread.interrupted()) {
+            post(new Runnable() {
+                public void run() {
+                    if (onJoystickMoveListener != null)
+                        onJoystickMoveListener.onValueChanged(getAngle(),
+                                getDistance(), getStickState());
+                }
+            });
+            try {
+                Thread.sleep(loopInterval);
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
+    }
+
     public void setOn4DirectListener(On4DirectListener on4DirectListener) {
         this.on4DirectListener = on4DirectListener;
     }
@@ -553,6 +608,13 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     public void setOn8DirectListener(On8DirectListener on8DirectListener) {
         this.on8DirectListener = on8DirectListener;
         this.on4DirectListener = on8DirectListener;
+    }
+
+
+    public void setOnJoystickMoveListener(OnJoystickMoveListener listener,
+                                          long repeatInterval) {
+        this.onJoystickMoveListener = listener;
+        this.loopInterval = repeatInterval;
     }
 
     interface On8DirectListener extends On4DirectListener {
@@ -581,11 +643,25 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         void onFinish();
     }
 
-    interface OnChangeStateListener {
-        void onChangeState(JoyStickEvent next, JoyStickEvent previous);
+    interface OnLong4DirectionListener {
+        boolean onLongUp();
+
+        boolean onLongRight();
+
+        boolean onLongDown();
+
+        boolean onLongLeft();
     }
 
-    enum JoyStickEvent {
+    interface OnChangeStateListener {
+        void onChangeState(JoyStickState next, JoyStickState previous);
+    }
+
+    public interface OnJoystickMoveListener {
+        void onValueChanged(float angle, float power, JoyStickState direction);
+    }
+
+    enum JoyStickState {
         NONE,
         UP,
         UPRIGHT,

@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">android-joystick-controler-test</string>
+    <string name="front_lab">front</string>
+    <string name="front_right_lab">front right</string>
+    <string name="right_lab">right</string>
+    <string name="right_bottom_lab">right bottom</string>
+    <string name="bottom_lab">bottom</string>
+    <string name="bottom_left_lab">bottom left</string>
+    <string name="left_lab">left</string>
+    <string name="left_front_lab">fron left</string>
+    <string name="center_lab">center</string>
 </resources>
