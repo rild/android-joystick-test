@@ -39,73 +39,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mJoyStick = (JoyStickSurfaceView) findViewById(R.id.main_joystick);
-//        mJoyStick.setOn8DirectListener(new JoyStickSurfaceView.On8DirectListener() {
-//            @Override
-//            public void onUpRight() {
-//                mTextViewDirection.setText("Direction : Up Right");
-//            }
-//
-//            @Override
-//            public void onDownRight() {
-//                mTextViewDirection.setText("Direction : Down Right");
-//            }
-//
-//            @Override
-//            public void onDownLeft() {
-//                mTextViewDirection.setText("Direction : Down Left");
-//            }
-//
-//            @Override
-//            public void onUpLeft() {
-//                mTextViewDirection.setText("Direction : Up Left");
-//            }
-//
-//            @Override
-//            public void onDirect(int posX, int posY, float angle, float distance) {
-//                mTextViewPosX.setText("X : " + String.valueOf(posX));
-//                mTextViewPosY.setText("Y : " + String.valueOf(posY));
-//                mTextViewAngle.setText("Angle : " + String.valueOf(angle));
-//                mTextViewDistance.setText("Distance : " + String.valueOf(distance));
-//            }
-//
-//            @Override
-//            public void onNone() {
-//                mTextViewDirection.setText("Direction : Center");
-//            }
-//
-//            @Override
-//            public void onUp() {
-//                mTextViewDirection.setText("Direction : Up");
-//                Log.d("Action", "up");
-//            }
-//
-//            @Override
-//            public void onRight() {
-//                mTextViewDirection.setText("Direction : Right");
-//                Log.d("Action", "right");
-//            }
-//
-//            @Override
-//            public void onDown() {
-//                mTextViewDirection.setText("Direction : Down");
-//                Log.d("Action", "down");
-//            }
-//
-//            @Override
-//            public void onLeft() {
-//                mTextViewDirection.setText("Direction : Left");
-//                Log.d("Action", "left");
-//            }
-//
-//            @Override
-//            public void onFinish() {
-//                mTextViewPosX.setText("X :");
-//                mTextViewPosY.setText("Y :");
-//                mTextViewAngle.setText("Angle :");
-//                mTextViewDistance.setText("Distance :");
-//                mTextViewDirection.setText("Direction :");
-//            }
-//        });
+
         mJoyStick.setOnJoyStickMoveListener(new JoyStickSurfaceView.OnJoystickMoveListener() {
             @Override
             public void onValueChanged(float angle, float power, JoyStickSurfaceView.JoyStickState direction) {

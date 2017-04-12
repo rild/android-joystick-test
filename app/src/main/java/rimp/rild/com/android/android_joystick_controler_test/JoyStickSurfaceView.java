@@ -76,8 +76,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private JoyStickState stickState = JoyStickState.NONE;
 
-    private On8DirectListener on8DirectListener;
-    private On4DirectListener on4DirectListener;
     private OnChangeStateListener onChangeStateListener;
 
     private final long LOOP_INTERVAL_DEFAULT = 800; // original 100 ms
@@ -154,15 +152,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 if (event.getAction() == MotionEvent.ACTION_DOWN
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
 
-
-                    if (on4DirectListener != null)
-                        on4DirectListener.onDirect(getPosX(), getPosY(), getAngle(), getDistance());
-
                     if (distance > minDistance && isTouched) {
                         onChangeState(judge8DirectionEvent(angle));
                     } else if (distance <= minDistance && isTouched) {
                         // STICK_NONE;
-                        if (on4DirectListener != null) on4DirectListener.onNone();
                         stickState = JoyStickState.NONE;
 
                         if (thread != null) thread.interrupt();
@@ -173,7 +166,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                     }
 
                 } else {
-                    if (on4DirectListener != null) on4DirectListener.onFinish();
+//                    if (on4DirectListener != null) on4DirectListener.onFinish();
                     stickState = JoyStickState.NONE;
 
                     handlerOnLongPush.removeCallbacks(onLongPushed);
@@ -221,39 +214,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private void onChangeState(JoyStickState state) {
         if (stickState != state) {
             // change from other state
-            if (on4DirectListener != null) {
-                switch (state) {
-                    case UP:
-                        on4DirectListener.onUp();
-                        break;
-                    case RIGHT:
-                        on4DirectListener.onRight();
-                        break;
-                    case DOWN:
-                        on4DirectListener.onDown();
-                        break;
-                    case LEFT:
-                        on4DirectListener.onLeft();
-                        break;
-                }
-                on4DirectListener.onUp();
-            }
-            if (on8DirectListener != null) {
-                switch (state) {
-                    case UPRIGHT:
-                        on8DirectListener.onUpRight();
-                        break;
-                    case DOWNRIGHT:
-                        on8DirectListener.onDownRight();
-                        break;
-                    case DOWNLEFT:
-                        on8DirectListener.onDownLeft();
-                        break;
-                    case UPLEFT:
-                        on8DirectListener.onUpLeft();
-                        break;
-                }
-            }
 
             if (thread != null && thread.isAlive()) {
                 thread.interrupt();
@@ -286,71 +246,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         getStickState());
         }
         stickState = state;
-    }
-
-    private void onUp() {
-        if (stickState != JoyStickState.UP) {
-            if (on4DirectListener != null) on4DirectListener.onUp();
-
-//            if (thread != null && thread.isAlive()) {
-//                thread.interrupt();
-//            }
-//            thread = new Thread(JoyStickSurfaceView.this);
-//            thread.start();
-            if (onJoystickMoveListener != null)
-                onJoystickMoveListener.onValueChanged(getAngle(), getDistance(),
-                        getStickState());
-        }
-        stickState = JoyStickState.UP;
-    }
-
-    private void onUpRight() {
-        if (on8DirectListener != null && stickState != JoyStickState.UPRIGHT) {
-            on8DirectListener.onUpRight();
-        }
-        stickState = JoyStickState.UPRIGHT;
-    }
-
-    private void onRight() {
-        if (stickState != JoyStickState.RIGHT) {
-            if (on4DirectListener != null) on4DirectListener.onRight();
-        }
-        stickState = JoyStickState.RIGHT;
-    }
-
-    private void onDownRight() {
-        if (on8DirectListener != null && stickState != JoyStickState.DOWNRIGHT) {
-            on8DirectListener.onDownRight();
-        }
-        stickState = JoyStickState.DOWNRIGHT;
-    }
-
-    private void onDown() {
-        if (stickState != JoyStickState.DOWN) {
-            if (on4DirectListener != null) on4DirectListener.onDown();
-        }
-        stickState = JoyStickState.DOWN;
-    }
-
-    private void onDownLeft() {
-        if (on8DirectListener != null && stickState != JoyStickState.DOWNLEFT) {
-            on8DirectListener.onDownLeft();
-        }
-        stickState = JoyStickState.DOWNLEFT;
-    }
-
-    private void onLeft() {
-        if (stickState != JoyStickState.LEFT) {
-            if (on4DirectListener != null) on4DirectListener.onLeft();
-        }
-        stickState = JoyStickState.LEFT;
-    }
-
-    private void onUpLeft() {
-        if (on8DirectListener != null && stickState != JoyStickState.UPLEFT) {
-            on8DirectListener.onUpLeft();
-        }
-        stickState = JoyStickState.UPLEFT;
     }
 
     public void registerLayoutCenter(int width, int height) {
@@ -677,15 +572,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         return 0;
     }
 
-    public void setOn4DirectListener(On4DirectListener on4DirectListener) {
-        this.on4DirectListener = on4DirectListener;
-    }
-
-    public void setOn8DirectListener(On8DirectListener on8DirectListener) {
-        this.on8DirectListener = on8DirectListener;
-        this.on4DirectListener = on8DirectListener;
-    }
-
     public void setOnJoyStickMoveListener(OnJoystickMoveListener listener,
                                           long loopInterval) {
         this.onJoystickMoveListener = listener;
@@ -729,32 +615,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 //
 //        }
         return in;
-    }
-
-    interface On8DirectListener extends On4DirectListener {
-        void onUpRight();
-
-        void onDownRight();
-
-        void onDownLeft();
-
-        void onUpLeft();
-    }
-
-    interface On4DirectListener {
-        void onDirect(int posX, int posY, float angle, float distance);
-
-        void onNone();
-
-        void onUp();
-
-        void onRight();
-
-        void onDown();
-
-        void onLeft();
-
-        void onFinish();
     }
 
     interface OnLongPushListener {
