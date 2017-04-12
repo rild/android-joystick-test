@@ -117,7 +117,8 @@ public class MainActivity extends AppCompatActivity {
                     case UP:
                         testCount++;
                         Log.d("MainEvent", "up");
-                        mTextViewDirection.setText(R.string.front_lab + " C:" + testCount);
+                        mTextViewDirection.setText(
+                                getResources().getString(R.string.front_lab) + " C:" + testCount);
                         break;
                     case UPRIGHT:
                         mTextViewDirection.setText(R.string.front_right_lab);
@@ -145,6 +146,6 @@ public class MainActivity extends AppCompatActivity {
                         mTextViewDirection.setText(R.string.center_lab);
                 }
             }
-        }, JoyStickSurfaceView.DEFAULT_LOOP_INTERVAL);
+        }, JoyStickSurfaceView.LOOP_INTERVAL_DEFAULT, false);
     }
 }

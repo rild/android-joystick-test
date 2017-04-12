@@ -9,7 +9,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
-import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -34,6 +33,16 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private int ALPHA_LAYOUT = 200;
     private int ALPHA_SIGNAL = 200;
     private int OFFSET = 0;
+
+    /**
+     * {@code isFixedInterval == false} add weight to `loopInterval`
+     * the weight depends on distance (getDistance return value)
+     *
+     * @param range range would be
+     * PAD SIZE (prams.height, params.width) - OFFSET
+     * it limits stick movement
+     */
+    private int RANGE = 100;
 
     private SurfaceHolder surfaceHolder;
 
@@ -70,10 +79,15 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private On4DirectListener on4DirectListener;
     private OnChangeStateListener onChangeStateListener;
 
-    public final static long DEFAULT_LOOP_INTERVAL = 1000; // original 100 ms
+    public final static long LOOP_INTERVAL_DEFAULT = 800; // original 100 ms
+    private final static long LOOP_INTERVAL_FASTEST = 100;
+
     private OnJoystickMoveListener onJoystickMoveListener; // Listener
     private Thread thread = new Thread(this);
-    private long loopInterval = DEFAULT_LOOP_INTERVAL;
+    private long loopInterval = LOOP_INTERVAL_DEFAULT;
+    private boolean isFixedInterval = true;
+    private float intervalWeight;
+
 
     public JoyStickSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -359,6 +373,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         setOffset(params.width / DENO_RATE_OFFSET_TO_PAD);
         setMinimumDistance(params.width / DENO_RATE_MIN_DISTANCE_TO_PAD);
 
+        RANGE = params.height - OFFSET;
         resizeImages();
     }
 
@@ -594,7 +609,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 }
             });
             try {
-                Thread.sleep(loopInterval);
+                long interval = loopInterval;
+                if (!isFixedInterval)
+                    interval = calCurrentInterval(getDistance());
+                Thread.sleep(interval);
             } catch (InterruptedException e) {
                 break;
             }
@@ -612,9 +630,42 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
 
     public void setOnJoystickMoveListener(OnJoystickMoveListener listener,
-                                          long repeatInterval) {
+                                          long repeatBaseInterval, boolean isFixedInterbal) {
         this.onJoystickMoveListener = listener;
-        this.loopInterval = repeatInterval;
+
+        if (repeatBaseInterval > LOOP_INTERVAL_FASTEST)
+            this.loopInterval = repeatBaseInterval;
+
+            // loopInterval must be larger than LOOP_INTERVAL_FASTEST
+        else this.loopInterval = LOOP_INTERVAL_FASTEST;
+
+        this.isFixedInterval = isFixedInterbal;
+    }
+
+    private long calCurrentInterval(float distance) {
+        long in = LOOP_INTERVAL_DEFAULT;
+        if (OFFSET >= distance) in = loopInterval;
+        else if (distance >= RANGE - params.height / 5) in = LOOP_INTERVAL_FASTEST;
+//        else {
+//
+//            float xx_per_aa = (distance - OFFSET) * (distance - OFFSET) / RANGE / RANGE;
+//            Log.d("cal", "x^2/a^2:" + xx_per_aa);
+//            Log.d("cal", "1-x^2/a^2:" +
+//                    (1 - xx_per_aa));
+//            Log.d("cal", "root:" + Math.sqrt(
+//                    1 - xx_per_aa));
+//            Log.d("cal", "F:" + ((loopInterval - LOOP_INTERVAL_FASTEST)
+//                    * Math.sqrt(1 - xx_per_aa)
+//                    + LOOP_INTERVAL_FASTEST));
+//            in = (long) (
+//                    (loopInterval - LOOP_INTERVAL_FASTEST)
+//                            * Math.sqrt(1 - xx_per_aa)
+//                            + LOOP_INTERVAL_FASTEST);
+//
+//        }
+        Log.d("cal", "in=" + in);
+        if (in <= 0) in = LOOP_INTERVAL_FASTEST;
+        return in;
     }
 
     interface On8DirectListener extends On4DirectListener {
