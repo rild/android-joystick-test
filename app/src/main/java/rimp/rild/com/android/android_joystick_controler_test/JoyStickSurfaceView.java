@@ -154,7 +154,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         // STICK_NONE;
                         stickState = JoyStickState.NONE;
 
-                        if (threadJoyStickMove != null) threadJoyStickMove.interrupt();
+                        interruptJoyStickMoveThread();
                         performOnJoyStickMove();
 
                     }
@@ -165,7 +165,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
                     handlerOnLongPush.removeCallbacks(onLongPushed);
 
-                    if (threadJoyStickMove != null) threadJoyStickMove.interrupt();
+                    interruptJoyStickMoveThread();
                     performOnJoyStickMove();
                 }
                 return true;
@@ -214,16 +214,14 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 @Override
                 public void run() {
                     while (!Thread.interrupted()) {
+                        // why post ?
                         post(new Runnable() {
                             public void run() {
                                 performOnJoyStickMove();
                             }
                         });
                         try {
-                            long interval = loopInterval;
-                            if (hasFastLoop)
-                                interval = calCurrentInterval();
-                            Thread.sleep(interval);
+                            sleepJoyStick();
                         } catch (InterruptedException e) {
                             break;
                         }
@@ -236,10 +234,21 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         stickState = state;
     }
 
+    private void sleepJoyStick() throws InterruptedException{
+        long interval = loopInterval;
+        if (hasFastLoop)
+            interval = calCurrentInterval();
+        Thread.sleep(interval);
+    }
+
     private void performOnJoyStickMove() {
         if (onJoyStickMoveListener != null)
             onJoyStickMoveListener.onValueChanged(getAngle(), getDistance(),
                     getStickState());
+    }
+
+    private void interruptJoyStickMoveThread() {
+        if (threadJoyStickMove != null) threadJoyStickMove.interrupt();
     }
 
     public void registerLayoutCenter(int width, int height) {
