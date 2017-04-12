@@ -132,8 +132,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 Canvas canvas = surfaceHolder.lockCanvas();
-                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                drawBackground(canvas);
+                performResetCanvas(canvas);
                 drawStick(canvas, event);
                 surfaceHolder.unlockCanvasAndPost(canvas);
 
@@ -298,8 +297,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     public void surfaceCreated(SurfaceHolder holder) {
         init();
         Canvas canvas = surfaceHolder.lockCanvas();
-        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        drawBackground(canvas);
+        performResetCanvas(canvas);
         drawStick(canvas);
         surfaceHolder.unlockCanvasAndPost(canvas);
     }
@@ -341,6 +339,11 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         resizeImages();
     }
 
+    private void performResetCanvas(Canvas canvas) {
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        drawBackground(canvas);
+    }
+
     public void drawStick(Canvas canvas, MotionEvent event) {
         positionX = (int) (event.getX() - (params.width / 2));
         positionY = (int) (event.getY() - (params.height / 2));
@@ -370,8 +373,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             // reset stick pad
-            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-            drawBackground(canvas);
+            performResetCanvas(canvas);
             isTouched = false;
         }
         // reset stick
