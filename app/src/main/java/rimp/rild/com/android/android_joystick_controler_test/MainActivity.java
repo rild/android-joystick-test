@@ -106,8 +106,7 @@ public class MainActivity extends AppCompatActivity {
 //                mTextViewDirection.setText("Direction :");
 //            }
 //        });
-
-        mJoyStick.setOnJoystickMoveListener(new JoyStickSurfaceView.OnJoystickMoveListener() {
+        mJoyStick.setOnJoyStickMoveListener(new JoyStickSurfaceView.OnJoystickMoveListener() {
             @Override
             public void onValueChanged(float angle, float power, JoyStickSurfaceView.JoyStickState direction) {
                 // TODO Auto-generated method stub
@@ -121,31 +120,42 @@ public class MainActivity extends AppCompatActivity {
                                 getResources().getString(R.string.front_lab) + " C:" + testCount);
                         break;
                     case UPRIGHT:
-                        mTextViewDirection.setText(R.string.front_right_lab);
+                        mTextViewDirection.setText(
+                                getResources().getString(R.string.front_right_lab) + " C:" + testCount);
                         break;
                     case RIGHT:
-                        mTextViewDirection.setText(R.string.right_lab);
+                        testCount++;
+                        mTextViewDirection.setText(
+                                getResources().getString(R.string.right_lab) + " C:" + testCount);
                         break;
                     case DOWNRIGHT:
-                        mTextViewDirection.setText(R.string.right_bottom_lab);
+                        mTextViewDirection.setText(
+                                getResources().getString(R.string.right_bottom_lab) + " C:" + testCount);
                         break;
                     case DOWN:
-                        mTextViewDirection.setText(R.string.bottom_lab);
+                        testCount++;
+                        mTextViewDirection.setText(
+                                getResources().getString(R.string.bottom_lab) + " C:" + testCount);
                         break;
                     case DOWNLEFT:
-                        mTextViewDirection.setText(R.string.bottom_left_lab);
+                        mTextViewDirection.setText(
+                                getResources().getString(R.string.bottom_left_lab) + " C:" + testCount);
                         break;
                     case LEFT:
-                        mTextViewDirection.setText(R.string.left_lab);
+                        testCount++;
+                        mTextViewDirection.setText(
+                                getResources().getString(R.string.left_lab) + " C:" + testCount);
                         break;
                     case UPLEFT:
-                        mTextViewDirection.setText(R.string.left_front_lab);
+                        mTextViewDirection.setText(
+                                getResources().getString(R.string.left_front_lab) + " C:" + testCount);
                         break;
                     default:
                         testCount = 0;
-                        mTextViewDirection.setText(R.string.center_lab);
+                        mTextViewDirection.setText(
+                                getResources().getString(R.string.center_lab) + " C:" + testCount);
                 }
             }
-        }, JoyStickSurfaceView.LOOP_INTERVAL_DEFAULT, false);
+        }, JoyStickSurfaceView.LOOP_INTERVAL_SLOW, JoyStickSurfaceView.LOOP_INTERVAL_FAST);
     }
 }

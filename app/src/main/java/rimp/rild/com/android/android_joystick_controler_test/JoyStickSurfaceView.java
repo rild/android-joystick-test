@@ -79,14 +79,15 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private On4DirectListener on4DirectListener;
     private OnChangeStateListener onChangeStateListener;
 
-    public final static long LOOP_INTERVAL_DEFAULT = 800; // original 100 ms
-    private final static long LOOP_INTERVAL_FASTEST = 100;
+    private final long LOOP_INTERVAL_DEFAULT = 800; // original 100 ms
+    public final static long LOOP_INTERVAL_SLOW = 800; // original 100 ms
+    public final static long LOOP_INTERVAL_FAST = 100;
+    private boolean hasFastLoop = false;
 
     private OnJoystickMoveListener onJoystickMoveListener; // Listener
     private Thread thread = new Thread(this);
     private long loopInterval = LOOP_INTERVAL_DEFAULT;
-    private boolean isFixedInterval = true;
-    private float intervalWeight;
+    private long loopFastInterval = LOOP_INTERVAL_DEFAULT;
 
 
     public JoyStickSurfaceView(Context context, AttributeSet attrs) {
@@ -136,33 +137,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         on4DirectListener.onDirect(getPosX(), getPosY(), getAngle(), getDistance());
 
                     if (distance > minDistance && isTouched) {
-
-                        switch (judge8DirectionEvent(angle)) {
-                            case UP:
-                                onUp();
-                                break;
-                            case UPRIGHT:
-                                onUpRight();
-                                break;
-                            case RIGHT:
-                                onRight();
-                                break;
-                            case DOWNRIGHT:
-                                onDownRight();
-                                break;
-                            case DOWN:
-                                onDown();
-                                break;
-                            case DOWNLEFT:
-                                onDownLeft();
-                                break;
-                            case LEFT:
-                                onLeft();
-                                break;
-                            case UPLEFT:
-                                onUpLeft();
-                                break;
-                        }
+                        onChangeState(judge8DirectionEvent(angle));
                     } else if (distance <= minDistance && isTouched) {
                         // STICK_NONE;
                         if (on4DirectListener != null) on4DirectListener.onNone();
@@ -219,6 +194,55 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             return JoyStickState.UPLEFT;
         }
         return event;
+    }
+
+    private void onChangeState(JoyStickState state) {
+        if (stickState != state) {
+            // change from other state
+            if (on4DirectListener != null) {
+                switch (state) {
+                    case UP:
+                        on4DirectListener.onUp();
+                        break;
+                    case RIGHT:
+                        on4DirectListener.onRight();
+                        break;
+                    case DOWN:
+                        on4DirectListener.onDown();
+                        break;
+                    case LEFT:
+                        on4DirectListener.onLeft();
+                        break;
+                }
+                on4DirectListener.onUp();
+            }
+            if (on8DirectListener != null) {
+                switch (state) {
+                    case UPRIGHT:
+                        on8DirectListener.onUpRight();
+                        break;
+                    case DOWNRIGHT:
+                        on8DirectListener.onDownRight();
+                        break;
+                    case DOWNLEFT:
+                        on8DirectListener.onDownLeft();
+                        break;
+                    case UPLEFT:
+                        on8DirectListener.onUpLeft();
+                        break;
+                }
+            }
+
+            if (thread != null && thread.isAlive()) {
+                thread.interrupt();
+            }
+            thread = new Thread(JoyStickSurfaceView.this);
+            thread.start();
+            if (onJoystickMoveListener != null)
+                onJoystickMoveListener.onValueChanged(getAngle(), getDistance(),
+                        getStickState());
+        }
+        stickState = state;
     }
 
     private void onUp() {
@@ -369,7 +393,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 params.height / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW);
         setLayoutAlpha(150);
         setStickAlpha(180);
-        setSignalAlpha(220);
+        setSignalAlpha(120);
         setOffset(params.width / DENO_RATE_OFFSET_TO_PAD);
         setMinimumDistance(params.width / DENO_RATE_MIN_DISTANCE_TO_PAD);
 
@@ -391,17 +415,18 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         } else if (event.getAction() == MotionEvent.ACTION_MOVE && isTouched) {
             if (distance <= (params.width / 2) - OFFSET) {
                 jsEntity.position(event.getX(), event.getY());
+                drawSignal(canvas);
             } else if (distance > (params.width / 2) - OFFSET) {
                 float x = (float) (Math.cos(Math.toRadians(calAngle(positionX, positionY))) * ((params.width / 2) - OFFSET));
                 float y = (float) (Math.sin(Math.toRadians(calAngle(positionX, positionY))) * ((params.height / 2) - OFFSET));
                 x += (params.width / 2);
                 y += (params.height / 2);
                 jsEntity.position(x, y);
-                drawSignal(canvas);
+                drawDarkenSignal(canvas);
             } else {
                 // reset stick pad
-                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                drawBackground(canvas);
+//                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+//                drawBackground(canvas);
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             // reset stick pad
@@ -410,8 +435,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             isTouched = false;
         }
         // reset stick
-        drawStick(canvas);
-        if (isTouched) drawStick(canvas); // darken stick on touched
+        if (isTouched) drawDarkenStick(canvas); // darken stick on touched
+        else drawStick(canvas);
     }
 
     private void drawStick(Canvas canvas) {
@@ -430,6 +455,11 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 canvas.drawBitmap(stick, jsEntity.center_x - (stickWidth / 2), jsEntity.center_y - (stickHeight / 2), alphaStick);
             }
         }
+    }
+
+    private void drawDarkenStick(Canvas canvas) {
+        drawStick(canvas);
+        drawStick(canvas);
     }
 
     public void drawBackground(Canvas canvas) {
@@ -452,6 +482,12 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 canvas.drawBitmap(signalLeft, 0, 0, alphaSignal);
                 break;
         }
+    }
+
+    private void drawDarkenSignal(Canvas canvas) {
+        drawSignal(canvas);
+        drawSignal(canvas);
+        drawSignal(canvas);
     }
 
     public int getPosX() {
@@ -610,8 +646,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             });
             try {
                 long interval = loopInterval;
-                if (!isFixedInterval)
-                    interval = calCurrentInterval(getDistance());
+                if (hasFastLoop)
+                    interval = calCurrentInterval();
                 Thread.sleep(interval);
             } catch (InterruptedException e) {
                 break;
@@ -628,24 +664,27 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         this.on4DirectListener = on8DirectListener;
     }
 
-
-    public void setOnJoystickMoveListener(OnJoystickMoveListener listener,
-                                          long repeatBaseInterval, boolean isFixedInterbal) {
+    public void setOnJoyStickMoveListener(OnJoystickMoveListener listener,
+                                          long loopInterval) {
         this.onJoystickMoveListener = listener;
-
-        if (repeatBaseInterval > LOOP_INTERVAL_FASTEST)
-            this.loopInterval = repeatBaseInterval;
-
-            // loopInterval must be larger than LOOP_INTERVAL_FASTEST
-        else this.loopInterval = LOOP_INTERVAL_FASTEST;
-
-        this.isFixedInterval = isFixedInterbal;
+        this.loopInterval = loopInterval;
+        this.hasFastLoop = false;
     }
 
-    private long calCurrentInterval(float distance) {
-        long in = LOOP_INTERVAL_DEFAULT;
-        if (OFFSET >= distance) in = loopInterval;
-        else if (distance >= RANGE - params.height / 5) in = LOOP_INTERVAL_FASTEST;
+
+    public void setOnJoyStickMoveListener(OnJoystickMoveListener listener,
+                                          long loopSlowInterval, long loopFastInterval) {
+        setOnJoyStickMoveListener(listener, loopSlowInterval);
+        this.loopFastInterval = loopFastInterval;
+        this.hasFastLoop = true;
+    }
+
+    private long calCurrentInterval() {
+        long in = loopInterval;
+//        if (OFFSET >= distance) in = loopInterval;
+        if (distance <= (params.width / 2) - OFFSET) in = loopInterval;
+//        else if (distance >= RANGE - params.height / 5) in = LOOP_INTERVAL_FASTEST;
+        else if (distance > (params.width / 2) - OFFSET) in = loopFastInterval;
 //        else {
 //
 //            float xx_per_aa = (distance - OFFSET) * (distance - OFFSET) / RANGE / RANGE;
@@ -663,8 +702,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 //                            + LOOP_INTERVAL_FASTEST);
 //
 //        }
-        Log.d("cal", "in=" + in);
-        if (in <= 0) in = LOOP_INTERVAL_FASTEST;
         return in;
     }
 
@@ -694,14 +731,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         void onFinish();
     }
 
-    interface OnLong4DirectionListener {
-        boolean onLongUp();
-
-        boolean onLongRight();
-
-        boolean onLongDown();
-
-        boolean onLongLeft();
+    interface OnLongPushListener {
+        void onLongPush();
     }
 
     interface OnChangeStateListener {
