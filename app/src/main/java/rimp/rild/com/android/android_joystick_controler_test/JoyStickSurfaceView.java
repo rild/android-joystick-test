@@ -326,7 +326,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 params.height / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW);
         setLayoutAlpha(150);
         setStickAlpha(180);
-        setSignalAlpha(120);
+        setSignalAlpha(140);
         setOffset(params.width / DENO_RATE_OFFSET_TO_PAD);
         setMinimumDistance(params.width / DENO_RATE_MIN_DISTANCE_TO_PAD);
 
