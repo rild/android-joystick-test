@@ -82,7 +82,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     public final static long LOOP_INTERVAL_FAST = 100;
     private boolean hasFastLoop = false;
 
-    private OnJoystickMoveListener onJoystickMoveListener; // Listener
+    private OnJoystickMoveListener onJoyStickMoveListener; // Listener
     private Thread thread;
     private long loopInterval = LOOP_INTERVAL_DEFAULT;
     private long loopFastInterval = LOOP_INTERVAL_DEFAULT;
@@ -155,8 +155,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         stickState = JoyStickState.NONE;
 
                         if (thread != null) thread.interrupt();
-                        if (onJoystickMoveListener != null)
-                            onJoystickMoveListener.onValueChanged(getAngle(), getDistance(),
+                        if (onJoyStickMoveListener != null)
+                            onJoyStickMoveListener.onValueChanged(getAngle(), getDistance(),
                                     getStickState());
 
                     }
@@ -168,8 +168,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                     handlerOnLongPush.removeCallbacks(onLongPushed);
 
                     if (thread != null) thread.interrupt();
-                    if (onJoystickMoveListener != null)
-                        onJoystickMoveListener.onValueChanged(getAngle(), getDistance(),
+                    if (onJoyStickMoveListener != null)
+                        onJoyStickMoveListener.onValueChanged(getAngle(), getDistance(),
                                 getStickState());
                 }
                 return true;
@@ -220,8 +220,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                     while (!Thread.interrupted()) {
                         post(new Runnable() {
                             public void run() {
-                                if (onJoystickMoveListener != null)
-                                    onJoystickMoveListener.onValueChanged(getAngle(),
+                                if (onJoyStickMoveListener != null)
+                                    onJoyStickMoveListener.onValueChanged(getAngle(),
                                             getDistance(), getStickState());
                             }
                         });
@@ -237,8 +237,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 }
             });
             thread.start();
-            if (onJoystickMoveListener != null)
-                onJoystickMoveListener.onValueChanged(getAngle(), getDistance(),
+            if (onJoyStickMoveListener != null)
+                onJoyStickMoveListener.onValueChanged(getAngle(), getDistance(),
                         getStickState());
         }
         stickState = state;
@@ -565,7 +565,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     public void setOnJoyStickMoveListener(OnJoystickMoveListener listener,
                                           long loopInterval) {
-        this.onJoystickMoveListener = listener;
+        this.onJoyStickMoveListener = listener;
         this.loopInterval = loopInterval;
         this.hasFastLoop = false;
     }
