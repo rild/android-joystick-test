@@ -146,7 +146,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
 
                     if (distance > minDistance && isTouched) {
-                        onChangeState(judge8DirectionEvent(angle));
+                        onChangeState(judge8DirectionEventWith(angle));
                     } else if (distance <= minDistance && isTouched) {
                         // STICK_NONE;
                         performReleaseJoyStick();
@@ -176,7 +176,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         }
     }
 
-    private JoyStickState judge8DirectionEvent(float angle) {
+    private JoyStickState judge8DirectionEventWith(float angle) {
         JoyStickState event = JoyStickState.NONE;
         if (angle >= 247.5 && angle < 292.5) {
             // STICK_UP;
