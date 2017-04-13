@@ -26,6 +26,15 @@ This project is a test app for Joy Stick like controller of android apps.
          DOWNLEFT,
          LEFT,
          UPLEFT;
+         
+         MORE_UP,
+         MORE_UPRIGHT,
+         MORE_RIGHT,
+         MORE_DOWNRIGHT,
+         MORE_DOWN,
+         MORE_DOWNLEFT,
+         MORE_LEFT,
+         MORE_UPLEFT;
      }
  ```
  
