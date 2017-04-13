@@ -34,16 +34,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private int ALPHA_SIGNAL = 200;
     private int OFFSET = 0;
 
-    /**
-     * {@code isFixedInterval == false} add weight to `loopInterval`
-     * the weight depends on distance (getDistance return value)
-     *
-     * @param range range would be
-     * PAD SIZE (prams.height, params.width) - OFFSET
-     * it limits stick movement
-     */
-    private int RANGE = 100;
-
     private SurfaceHolder surfaceHolder;
 
     //    private Context mContext;
@@ -77,12 +67,26 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private OnChangeStateListener onChangeStateListener;
 
+    /**
+     * {@code hasFastLoop == false} method:
+     *  onJoyStickMoveListener.(float angle, float power, JoyStickSurfaceView.JoyStick state)
+     *  will loop only with loopInterval
+     *
+     * {@code hasFastLoop == true} the method will loop with
+     * two different interval.
+     * @param loopInterval
+     * @param loopFastInterval
+     *
+     * loop interval depends on
+     * @param distance
+     */
     private final long LOOP_INTERVAL_DEFAULT = 800; // original 100 ms
     public final static long LOOP_INTERVAL_SLOW = 800;
     public final static long LOOP_INTERVAL_FAST = 100;
     private long loopInterval = LOOP_INTERVAL_DEFAULT;
     private long loopFastInterval = LOOP_INTERVAL_DEFAULT;
     private boolean hasFastLoop = false;
+
     private OnJoystickMoveListener onJoyStickMoveListener;
     private Thread threadJoyStickMove;
 
@@ -338,7 +342,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         setOffset(params.width / DENO_RATE_OFFSET_TO_PAD);
         setMinimumDistance(params.width / DENO_RATE_MIN_DISTANCE_TO_PAD);
 
-        RANGE = params.height - OFFSET;
         resizeImages();
     }
 
@@ -611,6 +614,9 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         return in;
     }
 
+    /**
+     * Event Listeners
+     */
     public interface OnLongPushListener {
         void onLongPush();
     }
