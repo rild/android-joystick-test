@@ -22,10 +22,10 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_joystick_surfaceview_activity);
-        mTextViewState = (TextView)findViewById(R.id.text_view_state);
-        mTextViewAngle = (TextView)findViewById(R.id.textView3);
-        mTextViewDistance = (TextView)findViewById(R.id.textView4);
-        mTextViewDirection = (TextView)findViewById(R.id.textView5);
+        mTextViewState = (TextView) findViewById(R.id.text_view_state);
+        mTextViewAngle = (TextView) findViewById(R.id.textView3);
+        mTextViewDistance = (TextView) findViewById(R.id.textView4);
+        mTextViewDirection = (TextView) findViewById(R.id.textView5);
 
         mJoyStick = (JoyStickSurfaceView) findViewById(R.id.main_joystick);
 
@@ -100,9 +100,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChangeState(JoyStickSurfaceView.JoyStick next,
                                       JoyStickSurfaceView.JoyStick previous) {
-                if (testCount > 1
-                        && !JoyStickSurfaceView.JoyStick.
-                        isMore(next, previous)) testCount = 0;
+                if (testCount > 1) {
+                    if ((!JoyStickSurfaceView.JoyStick.
+                            isMore(next, previous)))
+                        if ((!JoyStickSurfaceView.JoyStick.
+                                isLess(next, previous)))
+                            testCount = 0;
+                }
                 mTextViewState.setText(String.valueOf(next));
             }
         });
