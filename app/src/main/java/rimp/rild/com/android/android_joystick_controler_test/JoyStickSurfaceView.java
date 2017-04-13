@@ -11,6 +11,7 @@ import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.os.Handler;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -99,7 +100,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
      * <-- ignore -->
      *     minDistance
      *     <-- slow interval, weak signal -->
-     *         (params.width / 2) - offset
+     *         midDistance = (params.width / 2) - offset
      *         <-- fast interval, strong signal -->
      */
     private final long LOOP_INTERVAL_DEFAULT = 800; // original 100 ms
@@ -227,7 +228,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
 
                     if (distance > minDistance && jsEntity.isTouched()) {
-                        performOnChangeState(judgeStateWith(angle));
+                        performOnChangeState(judgeStateWith(angle, distance));
+//                        performOnChangeState(judgeStateWith(angle));
                     } else if (distance <= minDistance && jsEntity.isTouched()) {
                         // STICK_NONE;
                         performReleaseJoyStick();
@@ -272,6 +274,37 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         } else if (angle >= 157.5 && angle < 202.5) {
             return JoyStick.LEFT;
         } else if (angle >= 202.5 && angle < 247.5) {
+            return JoyStick.UPLEFT;
+        }
+        return state;
+    }
+
+    private JoyStick judgeStateWith(float angle, float distance) {
+        float midDistance = (params.width / 2) - offset;
+        JoyStick state = JoyStick.NONE;
+        if (angle >= 247.5 && angle < 292.5) {
+            if (distance > midDistance) return JoyStick.MORE_UP;
+            return JoyStick.UP;
+        } else if (angle >= 292.5 && angle < 337.5) {
+            if (distance > midDistance) return JoyStick.MORE_UPRIGHT;
+            return JoyStick.UPRIGHT;
+        } else if (angle >= 337.5 || angle < 22.5) {
+            if (distance > midDistance) return JoyStick.MORE_RIGHT;
+            return JoyStick.RIGHT;
+        } else if (angle >= 22.5 && angle < 67.5) {
+            if (distance > midDistance) return JoyStick.MORE_DOWNRIGHT;
+            return JoyStick.DOWNRIGHT;
+        } else if (angle >= 67.5 && angle < 112.5) {
+            if (distance > midDistance) return JoyStick.MORE_DOWN;
+            return JoyStick.DOWN;
+        } else if (angle >= 112.5 && angle < 157.5) {
+            if (distance > midDistance) return JoyStick.MORE_DOWNLEFT;
+            return JoyStick.DOWNLEFT;
+        } else if (angle >= 157.5 && angle < 202.5) {
+            if (distance > midDistance) return JoyStick.MORE_LEFT;
+            return JoyStick.LEFT;
+        } else if (angle >= 202.5 && angle < 247.5) {
+            if (distance > midDistance) return JoyStick.MORE_UPLEFT;
             return JoyStick.UPLEFT;
         }
         return state;
@@ -401,18 +434,22 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         distance = (float) Math.sqrt(Math.pow(positionX, 2) + Math.pow(positionY, 2));
         angle = (float) calAngle(positionX, positionY);
 
+        final float midDistanceX = (params.width / 2) - offset;
+        final float midDistanceY = (params.height / 2) - offset;
+
+
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (distance <= (params.width / 2) - offset) {
+            if (distance <= midDistanceX) {
                 jsEntity.position(event.getX(), event.getY());
                 jsEntity.setTouched(true);
             }
         } else if (event.getAction() == MotionEvent.ACTION_MOVE && jsEntity.isTouched()) {
-            if (distance <= (params.width / 2) - offset) {
+            if (distance <= midDistanceX) {
                 jsEntity.position(event.getX(), event.getY());
                 drawSignal(canvas);
-            } else if (distance > (params.width / 2) - offset) {
-                float x = (float) (Math.cos(Math.toRadians(calAngle(positionX, positionY))) * ((params.width / 2) - offset));
-                float y = (float) (Math.sin(Math.toRadians(calAngle(positionX, positionY))) * ((params.height / 2) - offset));
+            } else if (distance > midDistanceX) {
+                float x = (float) (Math.cos(Math.toRadians(calAngle(positionX, positionY))) * midDistanceX);
+                float y = (float) (Math.sin(Math.toRadians(calAngle(positionX, positionY))) * midDistanceY);
                 x += (params.width / 2);
                 y += (params.height / 2);
                 jsEntity.position(x, y);
@@ -462,15 +499,19 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private void drawSignal(Canvas canvas) {
         if (!canUseSignal) return;
         switch (stickState) {
+            case MORE_UP:
             case UP:
                 canvas.drawBitmap(signalUp, 0, 0, alphaSigPaint);
                 break;
+            case MORE_RIGHT:
             case RIGHT:
                 canvas.drawBitmap(signalRight, 0, 0, alphaSigPaint);
                 break;
+            case MORE_DOWN:
             case DOWN:
                 canvas.drawBitmap(signalDown, 0, 0, alphaSigPaint);
                 break;
+            case MORE_LEFT:
             case LEFT:
                 canvas.drawBitmap(signalLeft, 0, 0, alphaSigPaint);
                 break;
@@ -654,8 +695,9 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private long calCurrentInterval() {
         long in = loopInterval;
-        if (distance <= (params.width / 2) - offset) in = loopInterval;
-        else if (distance > (params.width / 2) - offset) in = loopFastInterval;
+        final float midDistance = (params.width / 2) - offset;
+        if (distance <= midDistance) in = loopInterval;
+        else if (distance > midDistance) in = loopFastInterval;
         return in;
     }
 
@@ -707,7 +749,34 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         DOWNLEFT,
         LEFT,
         UPLEFT,
-        LONGPUSH;
+        LONGPUSH,
+
+        MORE_UP,
+        MORE_UPRIGHT,
+        MORE_RIGHT,
+        MORE_DOWNRIGHT,
+        MORE_DOWN,
+        MORE_DOWNLEFT,
+        MORE_LEFT,
+        MORE_UPLEFT;
+
+        public static boolean isMore(JoyStick next, JoyStick previous) {
+            boolean isMore = false;
+            if (previous == UP && next == MORE_UP) isMore = true;
+            if (previous == RIGHT && next == MORE_RIGHT) isMore = true;
+            if (previous == DOWN && next == MORE_DOWN) isMore = true;
+            if (previous == LEFT && next == MORE_LEFT) isMore = true;
+            return isMore;
+        }
+
+        public static boolean isLess(JoyStick next, JoyStick previous) {
+            boolean isMore = false;
+            if (next == UP && previous == MORE_UP) isMore = true;
+            if (next == RIGHT && previous == MORE_RIGHT) isMore = true;
+            if (next == DOWN && previous == MORE_DOWN) isMore = true;
+            if (next == LEFT && previous == MORE_LEFT) isMore = true;
+            return isMore;
+        }
     }
 
     private class JoyStickEntity {

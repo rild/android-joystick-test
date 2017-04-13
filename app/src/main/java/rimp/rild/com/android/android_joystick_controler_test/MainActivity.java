@@ -50,38 +50,46 @@ public class MainActivity extends AppCompatActivity {
                 mTextViewAngle.setText(" " + String.valueOf(angle) + "°");
                 mTextViewDistance.setText(" " + String.valueOf(power) + "%");
                 switch (state) {
+                    case MORE_UP:
                     case UP:
                         testCount++;
                         mTextViewDirection.setText(
                                 getResources().getString(R.string.front_lab) + " C:" + testCount);
                         break;
+                    case MORE_UPRIGHT:
                     case UPRIGHT:
                         mTextViewDirection.setText(
                                 getResources().getString(R.string.front_right_lab) + " C:" + testCount);
                         break;
+                    case MORE_RIGHT:
                     case RIGHT:
                         testCount++;
                         mTextViewDirection.setText(
                                 getResources().getString(R.string.right_lab) + " C:" + testCount);
                         break;
+                    case MORE_DOWNRIGHT:
                     case DOWNRIGHT:
                         mTextViewDirection.setText(
                                 getResources().getString(R.string.right_bottom_lab) + " C:" + testCount);
                         break;
+                    case MORE_DOWN:
                     case DOWN:
                         testCount++;
                         mTextViewDirection.setText(
                                 getResources().getString(R.string.bottom_lab) + " C:" + testCount);
                         break;
+                    case MORE_DOWNLEFT:
                     case DOWNLEFT:
                         mTextViewDirection.setText(
                                 getResources().getString(R.string.bottom_left_lab) + " C:" + testCount);
                         break;
+                    case MORE_LEFT:
                     case LEFT:
                         testCount++;
                         mTextViewDirection.setText(
                                 getResources().getString(R.string.left_lab) + " C:" + testCount);
                         break;
+                    case MORE_UPLEFT:
                     case UPLEFT:
                         mTextViewDirection.setText(
                                 getResources().getString(R.string.left_front_lab) + " C:" + testCount);
@@ -104,8 +112,11 @@ public class MainActivity extends AppCompatActivity {
 
         mJoyStick.setOnChangeStateListener(new JoyStickSurfaceView.OnChangeStateListener() {
             @Override
-            public void onChangeState(JoyStickSurfaceView.JoyStick next, JoyStickSurfaceView.JoyStick previous) {
-                if (testCount > 1) testCount = 0;
+            public void onChangeState(JoyStickSurfaceView.JoyStick next,
+                                      JoyStickSurfaceView.JoyStick previous) {
+                if (testCount > 1
+                        && !JoyStickSurfaceView.JoyStick.
+                        isMore(next, previous)) testCount = 0;
                 mTextViewState.setText(String.valueOf(next));
             }
         });
