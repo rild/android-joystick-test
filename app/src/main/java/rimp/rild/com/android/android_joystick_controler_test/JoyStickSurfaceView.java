@@ -129,6 +129,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         alphaStickPaint = new Paint();
     }
 
+    /**
+     * these size register method should call
+     * after bitmap images is loaded.
+     */
     private void registerStickSize() {
         if (stick == null) return;
         stickWidth = stick.getWidth();
@@ -561,7 +565,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public void setOffset(int offset) {
-        offset = offset;
+        this.offset = offset;
     }
 
     public void setLayoutAlpha(int alpha) {
