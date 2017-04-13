@@ -632,13 +632,13 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
         @Override
         public void run() {
-            performLongPushed(this.listener);
+            performLongPushed();
         }
-    }
 
-    private void performLongPushed(OnLongPushListener l) {
-        l.onLongPush();
-        setStickState(JoyStick.LONGPUSH);
+        private void performLongPushed() {
+            this.listener.onLongPush();
+            setStickState(JoyStick.LONGPUSH);
+        }
     }
 
     // seems to cause ERROR
