@@ -27,6 +27,9 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private final int MARGIN_SHADOW = 32;
     private final int DENO_RATE_OFFSET_TO_PAD = 3;
     private final int DENO_RATE_MIN_DISTANCE_TO_PAD = 12;
+    private final int ALPHA_PAD_DEFAULT = 150;
+    private final int ALPHA_STICK_DEFAULT = 180;
+    private final int ALPHA_SIGNAL_DEFAULT = 140;
     private int alphaStick = 200;
     private int alphaLayout = 200;
     private int alphaSignal = 200;
@@ -164,9 +167,9 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         setStickSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD, params.height / DENO_RATE_STICK_SIZE_TO_PAD);
         setShadowSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW,
                 params.height / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW);
-        setLayoutAlpha(150);
-        setStickAlpha(180);
-        setSignalAlpha(140);
+        setLayoutAlpha(ALPHA_PAD_DEFAULT);
+        setStickAlpha(ALPHA_STICK_DEFAULT);
+        setSignalAlpha(ALPHA_SIGNAL_DEFAULT);
         setOffset(params.width / DENO_RATE_OFFSET_TO_PAD);
         setMinimumDistance(params.width / DENO_RATE_MIN_DISTANCE_TO_PAD);
 
