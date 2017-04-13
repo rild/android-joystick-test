@@ -44,7 +44,7 @@ This project is a test app for Joy Stick like controller of android apps.
 
 ### Ver 1.0
 
-[<img src="https://gyazo.com/04c453e88a1f284a1aedbda8b5e3e3fe.png" 
+[<img width=350 src="https://gyazo.com/04c453e88a1f284a1aedbda8b5e3e3fe.png" 
 />](https://youtu.be/WJPi255NAYU)
 
 
