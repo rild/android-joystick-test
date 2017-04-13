@@ -129,7 +129,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     /**
-     * these size register method should call
+     * this size register method should call
      * after bitmap images is loaded.
      */
     private void registerStickSize() {
