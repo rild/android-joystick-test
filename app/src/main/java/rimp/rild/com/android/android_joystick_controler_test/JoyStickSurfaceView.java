@@ -73,7 +73,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private Bitmap signalDown;
     private Bitmap signalLeft;
 
-    private boolean isTouched = false;
     private boolean canUseShadow = USE_SHADOW_DEFAULT;
     private boolean canUseSignal = USE_SIG_DEFAULT;
 
@@ -227,9 +226,9 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                 if (event.getAction() == MotionEvent.ACTION_DOWN
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
 
-                    if (distance > minDistance && isTouched) {
+                    if (distance > minDistance && jsEntity.isTouched()) {
                         performOnChangeState(judgeStateWith(angle));
-                    } else if (distance <= minDistance && isTouched) {
+                    } else if (distance <= minDistance && jsEntity.isTouched()) {
                         // STICK_NONE;
                         performReleaseJoyStick();
                     }
@@ -405,9 +404,9 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (distance <= (params.width / 2) - offset) {
                 jsEntity.position(event.getX(), event.getY());
-                isTouched = true;
+                jsEntity.setTouched(true);
             }
-        } else if (event.getAction() == MotionEvent.ACTION_MOVE && isTouched) {
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE && jsEntity.isTouched()) {
             if (distance <= (params.width / 2) - offset) {
                 jsEntity.position(event.getX(), event.getY());
                 drawSignal(canvas);
@@ -426,15 +425,15 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             // reset stick pad
             drawBaseCanvas(canvas);
-            isTouched = false;
+            jsEntity.setTouched(false);
         }
         // reset stick
-        if (isTouched) drawDarkenStick(canvas); // darken stick on touched
+        if (jsEntity.isTouched()) drawDarkenStick(canvas); // darken stick on touched
         else drawStick(canvas);
     }
 
     private void drawStick(Canvas canvas) {
-        if (isTouched) {
+        if (jsEntity.isTouched()) {
             if (shadow != null && canUseShadow)
                 canvas.drawBitmap(shadow, jsEntity.s_x, jsEntity.s_y, alphaStickPaint);
             canvas.drawBitmap(stick, jsEntity.x, jsEntity.y, alphaStickPaint);
@@ -485,28 +484,28 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public int getPosX() {
-        if (distance > minDistance && isTouched) {
+        if (distance > minDistance && jsEntity.isTouched()) {
             return positionX;
         }
         return 0;
     }
 
     public int getPosY() {
-        if (distance > minDistance && isTouched) {
+        if (distance > minDistance && jsEntity.isTouched()) {
             return positionY;
         }
         return 0;
     }
 
     public float getAngle() {
-        if (distance > minDistance && isTouched) {
+        if (distance > minDistance && jsEntity.isTouched()) {
             return angle;
         }
         return 0;
     }
 
     public float getDistance() {
-        if (distance > minDistance && isTouched) {
+        if (distance > minDistance && jsEntity.isTouched()) {
             return distance;
         }
         return 0;
@@ -712,9 +711,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     private class JoyStickEntity {
-        float x, y;
-        float s_x, s_y; // shadow
-        float center_x, center_y; // center
+        private boolean isTouched = false;
+        private float x, y;
+        private float s_x, s_y; // shadow
+        private float center_x, center_y; // center
 
         private void position(float pos_x, float pos_y) {
             x = pos_x - (stickWidth / 2);
@@ -725,6 +725,14 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             float vecPC_y = center_y - pos_y;
             s_x = pos_x - (shadowWidth / 2) + vecPC_x / 3;
             s_y = pos_y - (shadowHeight / 2) + vecPC_y / 3;
+        }
+
+        private boolean isTouched() {
+            return isTouched;
+        }
+
+        private void setTouched(boolean touched) {
+            isTouched = touched;
         }
     }
 }
