@@ -69,14 +69,15 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     /**
      * {@code hasFastLoop == false} method:
-     *  onJoyStickMoveListener.(float angle, float power, JoyStickSurfaceView.JoyStick state)
-     *  will loop only with loopInterval
-     *
+     * onJoyStickMoveListener.(float angle, float power, JoyStickSurfaceView.JoyStick state)
+     * will loop only with loopInterval
+     * <p>
      * {@code hasFastLoop == true} the method will loop with
      * two different interval.
+     *
      * @param loopInterval
      * @param loopFastInterval
-     *
+     * <p>
      * loop interval depends on
      * @param distance
      */
@@ -315,15 +316,20 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         if (stick != null) stick.recycle();
         if (shadow != null) shadow.recycle();
 
-        background = BitmapFactory.decodeResource(res,
-                R.drawable.s_joystick_base);
-        stick = BitmapFactory.decodeResource(res,
-                R.drawable.s_joystick_stick);
-        shadow = BitmapFactory.decodeResource(res,
+        loadImages(res,
+                R.drawable.s_joystick_base,
+                R.drawable.s_joystick_stick,
                 R.drawable.s_joystick_shadow);
         // if you remove shadow, you should also remove "stickTall" : stickTall = 0
 
         if (canUseSignal) loadSignalImages(res);
+    }
+
+    private void loadImages(Resources res,
+                            int resIdBacks, int resIdStick, int resIdShadow) {
+        background = BitmapFactory.decodeResource(res, resIdBacks);
+        stick = BitmapFactory.decodeResource(res, resIdStick);
+        shadow = BitmapFactory.decodeResource(res, resIdShadow);
     }
 
     private void loadSignalImages(Resources res) {
@@ -332,14 +338,19 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         if (signalDown != null) signalDown.recycle();
         if (signalLeft != null) signalLeft.recycle();
 
-        signalUp = BitmapFactory.decodeResource(res,
-                R.drawable.s_signal_up);
-        signalRight = BitmapFactory.decodeResource(res,
-                R.drawable.s_signal_right);
-        signalDown = BitmapFactory.decodeResource(res,
-                R.drawable.s_signal_down);
-        signalLeft = BitmapFactory.decodeResource(res,
+        loadSignalImages(res,
+                R.drawable.s_signal_up,
+                R.drawable.s_signal_right,
+                R.drawable.s_signal_down,
                 R.drawable.s_signal_left);
+    }
+
+    private void loadSignalImages(Resources res,
+                                  int resIdUp, int resIdRight, int resIdDown, int resIdLeft) {
+        signalUp = BitmapFactory.decodeResource(res, resIdUp);
+        signalRight = BitmapFactory.decodeResource(res, resIdRight);
+        signalDown = BitmapFactory.decodeResource(res, resIdDown);
+        signalLeft = BitmapFactory.decodeResource(res, resIdLeft);
     }
 
     private void releaseSignalImages() {
