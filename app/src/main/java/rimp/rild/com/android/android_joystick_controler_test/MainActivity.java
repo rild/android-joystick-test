@@ -11,7 +11,9 @@ import android.widget.TextView;
 public class MainActivity extends AppCompatActivity {
     RelativeLayout layout_joystick;
     ImageView image_joystick, image_border;
-    TextView mTextViewPosX, mTextViewPosY, mTextViewAngle, mTextViewDistance, mTextViewDirection;
+    TextView mTextViewPosX, mTextViewPosY;
+    TextView mTextViewState;
+    TextView mTextViewAngle, mTextViewDistance, mTextViewDirection;
 
     JoyStick2 js;
     ImageView joystickSignal;
@@ -27,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
         mTextViewPosX = (TextView)findViewById(R.id.textView1);
         mTextViewPosY = (TextView)findViewById(R.id.textView2);
+        mTextViewState = (TextView)findViewById(R.id.text_view_state);
         mTextViewAngle = (TextView)findViewById(R.id.textView3);
         mTextViewDistance = (TextView)findViewById(R.id.textView4);
         mTextViewDirection = (TextView)findViewById(R.id.textView5);
@@ -103,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChangeState(JoyStickSurfaceView.JoyStick next, JoyStickSurfaceView.JoyStick previous) {
                 if (testCount > 1) testCount = 0;
+                mTextViewState.setText(String.valueOf(next));
             }
         });
     }

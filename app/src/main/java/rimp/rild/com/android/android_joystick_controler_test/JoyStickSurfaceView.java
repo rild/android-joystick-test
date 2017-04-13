@@ -78,23 +78,17 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private OnChangeStateListener onChangeStateListener;
 
     private final long LOOP_INTERVAL_DEFAULT = 800; // original 100 ms
-    public final static long LOOP_INTERVAL_SLOW = 800; // original 100 ms
+    public final static long LOOP_INTERVAL_SLOW = 800;
     public final static long LOOP_INTERVAL_FAST = 100;
-    private boolean hasFastLoop = false;
-
-    private OnJoystickMoveListener onJoyStickMoveListener; // Listener
-    private Thread threadJoyStickMove;
     private long loopInterval = LOOP_INTERVAL_DEFAULT;
     private long loopFastInterval = LOOP_INTERVAL_DEFAULT;
+    private boolean hasFastLoop = false;
+    private OnJoystickMoveListener onJoyStickMoveListener;
+    private Thread threadJoyStickMove;
 
     private OnLongPushListener onLongPushListener;
     private Handler handlerOnLongPush = new Handler();
-    private final Runnable onLongPushed = new Runnable() {
-        @Override
-        public void run() {
-            if (onLongPushListener != null) onLongPushListener.onLongPush();
-        }
-    };
+    private OnLongPushRunnable onLongPushed;
 
 
     public JoyStickSurfaceView(Context context, AttributeSet attrs) {
@@ -321,18 +315,19 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     }
 
+    /**
+     * DEFALUT
+     * pad (params) 504 // 126 * 4
+     * stick size   220 // 55 * 4
+     * shadow size  252 // 63 * 4
+     * offset       180 // 45 * 4
+     * min distance 40  // 10 * 4
+     * pad alpha    150
+     * stick alpha  180
+     */
     private void init() {
         registerScreenSize();
         registerLayoutCenter(params.width, params.height);
-
-        // default
-        // pad (params) 504 // 126 * 4
-        // stick size   220 // 55 * 4
-        // shadow size  252 // 63 * 4
-        // offset       180 // 45 * 4
-        // min distance 40  // 10 * 4
-        // pad alpha    150
-        // stick alpha  180
 
         stickTall = stickHeight / DENO_RATE_STICK_TALL_TO_SIZE; // make user feel sticky
         setStickSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD, params.height / DENO_RATE_STICK_SIZE_TO_PAD);
@@ -603,6 +598,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     public void setOnLongPushListener(OnLongPushListener onLongPushListener) {
         this.onLongPushListener = onLongPushListener;
+        this.onLongPushed = new OnLongPushRunnable(onLongPushListener);
+
     }
 
     public void setOnChangeStateListener(OnChangeStateListener onChangeStateListener) {
@@ -628,6 +625,19 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         void onValueChanged(float angle, float power, JoyStick state);
     }
 
+    private class OnLongPushRunnable implements Runnable{
+        OnLongPushListener listener;
+        public OnLongPushRunnable(OnLongPushListener l) {
+            this.listener = l;
+        }
+
+        @Override
+        public void run() {
+            onLongPushListener.onLongPush();
+            setStickState(JoyStick.LONGPUSH);
+        }
+    }
+
     // seems to cause ERROR
 //    public interface OnJoyStickMoveListener {
 //        void onValueChanged(float angle, float power, JoyStickState direction);
@@ -642,7 +652,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         DOWN,
         DOWNLEFT,
         LEFT,
-        UPLEFT;
+        UPLEFT,
+        LONGPUSH;
     }
 
     class JoyStickEntity {
