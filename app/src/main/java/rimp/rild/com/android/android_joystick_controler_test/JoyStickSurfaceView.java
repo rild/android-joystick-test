@@ -126,16 +126,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         alphaStickPaint = new Paint();
     }
 
-    /**
-     * this size register method should call
-     * after bitmap images is loaded.
-     */
-    private void registerStickSize() {
-        if (stick == null) return;
-        stickWidth = stick.getWidth();
-        stickHeight = stick.getHeight();
-    }
-
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         init();
@@ -187,6 +177,16 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         params = new ViewGroup.LayoutParams(getWidth(), getHeight());
     }
 
+    /**
+     * this size register method should call
+     * after bitmap images is loaded.
+     */
+    private void registerStickSize() {
+        if (stick == null) return;
+        stickWidth = stick.getWidth();
+        stickHeight = stick.getHeight();
+    }
+
     private void registerOnTouchEvent() {
         setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -210,8 +210,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                     }
 
                 } else {
-//                    if (on4DirectListener != null) on4DirectListener.onFinish();
-
                     handlerOnLongPush.removeCallbacks(onLongPushed);
 
                     performReleaseJoyStick();
