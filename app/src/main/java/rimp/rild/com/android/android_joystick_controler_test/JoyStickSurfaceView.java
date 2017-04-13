@@ -109,7 +109,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         loadImages(res);
 
         registerStickSize();
-        registerShadowSize();
 
         initAlphaPaints();
         jsEntity = new JoyStickEntity();
@@ -137,12 +136,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         if (stick == null) return;
         stickWidth = stick.getWidth();
         stickHeight = stick.getHeight();
-    }
-
-    private void registerShadowSize() {
-        if (shadow == null) return;
-        shadowWidth = shadow.getWidth();
-        shadowHeight = shadow.getHeight();
     }
 
     @Override
