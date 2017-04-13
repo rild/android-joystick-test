@@ -42,11 +42,11 @@ public class MainActivity extends AppCompatActivity {
 
         mJoyStick.setOnJoyStickMoveListener(new JoyStickSurfaceView.OnJoystickMoveListener() {
             @Override
-            public void onValueChanged(float angle, float power, JoyStickSurfaceView.JoyStick direction) {
+            public void onValueChanged(float angle, float power, JoyStickSurfaceView.JoyStick state) {
                 // TODO Auto-generated method stub
                 mTextViewAngle.setText(" " + String.valueOf(angle) + "°");
                 mTextViewDistance.setText(" " + String.valueOf(power) + "%");
-                switch (direction) {
+                switch (state) {
                     case UP:
                         testCount++;
                         mTextViewDirection.setText(

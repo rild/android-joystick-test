@@ -1,4 +1,37 @@
+# About
+
+This project is a test app for Joy Stick like controller of android apps.
+
+[JoyStickSurfaceView.java]( ./app/src/main/java/rimp/rild/com/android/android_joystick_controler_test/JoyStickSurfaceView.java) has all of that.
+ 
+ You can get these events from JoyStickSurfaceView with event listeners
+ 
+ - OnLongPushListener
+    - onLongPush()
+ - OnChangeStateListener
+    - onChangeState(JoyStick next, JoyStick previous)
+ - OnJoystickMoveListener
+    - onValueChanged(float angle, float power, JoyStick state)
+   
+ JoyStick is enum for value of JoyStick Sate
+ 
+ ```
+ enum JoyStick {
+         NONE,
+         UP,
+         UPRIGHT,
+         RIGHT,
+         DOWNRIGHT,
+         DOWN,
+         DOWNLEFT,
+         LEFT,
+         UPLEFT;
+     }
+ ```
+ 
 押す感じが楽しい
+
+# Memos
 
 ### 動作速度改善 20170411
 

@@ -625,7 +625,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public interface OnJoystickMoveListener {
-        void onValueChanged(float angle, float power, JoyStick direction);
+        void onValueChanged(float angle, float power, JoyStick state);
     }
 
     // seems to cause ERROR
