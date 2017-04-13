@@ -9,9 +9,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
-    RelativeLayout layout_joystick;
-    ImageView image_joystick, image_border;
-    TextView mTextViewPosX, mTextViewPosY;
     TextView mTextViewState;
     TextView mTextViewAngle, mTextViewDistance, mTextViewDirection;
 
@@ -25,21 +22,10 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_joystick_surfaceview_activity);
-        Log.d("Main", "set content");
-
-        mTextViewPosX = (TextView)findViewById(R.id.textView1);
-        mTextViewPosY = (TextView)findViewById(R.id.textView2);
         mTextViewState = (TextView)findViewById(R.id.text_view_state);
         mTextViewAngle = (TextView)findViewById(R.id.textView3);
         mTextViewDistance = (TextView)findViewById(R.id.textView4);
         mTextViewDirection = (TextView)findViewById(R.id.textView5);
-
-        mTextViewPosX.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                return false;
-            }
-        });
 
         mJoyStick = (JoyStickSurfaceView) findViewById(R.id.main_joystick);
 

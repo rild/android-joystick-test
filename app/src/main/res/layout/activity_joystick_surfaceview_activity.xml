@@ -24,21 +24,6 @@
             android:text="state"
             android:textColor="#444444"
             android:textSize="20dp" />
-
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="X"
-            android:textColor="#444444"
-            android:textSize="20dp" />
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Y"
-            android:textColor="#444444"
-            android:textSize="20dp" />
         <TextView
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
