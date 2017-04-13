@@ -42,10 +42,13 @@ This project is a test app for Joy Stick like controller of android apps.
 
 # Memos
 
-### 動作速度改善 20170411
+### Ver 1.0
 
 [<img src="https://gyazo.com/04c453e88a1f284a1aedbda8b5e3e3fe.png" 
 />](https://youtu.be/WJPi255NAYU)
+
+
+### 動作速度改善 20170411
 
 [<img width=350 src="https://gyazo.com/ab7786d2d2cd278c62f532ce6a1e3769.png"/>](https://youtu.be/45rPExCzwIQ)
 
