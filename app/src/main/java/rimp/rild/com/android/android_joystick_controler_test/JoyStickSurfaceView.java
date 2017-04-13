@@ -22,6 +22,18 @@ import android.view.ViewGroup;
  */
 
 public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
+    private final int RESID_STICK_DEFAULT = R.drawable.s_joystick_stick;
+    private final int RESID_BACKGROUND_DEFAULT = R.drawable.s_joystick_base;
+    private final int RESID_SHADOW_DEFAULT = R.drawable.s_joystick_shadow;
+
+    private final int RESID_SIG_UP_DEFAULT = R.drawable.s_signal_up;
+    private final int RESID_SIG_RIGHT_DEFAULT = R.drawable.s_signal_right;
+    private final int RESID_SIG_DOWN_DEFAULT = R.drawable.s_signal_down;
+    private final int RESID_SIG_LEFT_DEFAULT = R.drawable.s_signal_left;
+
+    private final boolean USE_SHADOW_DEFAULT = true;
+    private final boolean USE_SIG_DEFAULT = true;
+
     private final int DENO_RATE_STICK_TALL_TO_SIZE = 25;
     private final int DENO_RATE_STICK_SIZE_TO_PAD = 2;
     private final int MARGIN_SHADOW = 32;
@@ -30,6 +42,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private final int ALPHA_PAD_DEFAULT = 150;
     private final int ALPHA_STICK_DEFAULT = 180;
     private final int ALPHA_SIGNAL_DEFAULT = 140;
+
     private int alphaStick = 200;
     private int alphaLayout = 200;
     private int alphaSignal = 200;
@@ -61,11 +74,14 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private Bitmap signalLeft;
 
     private boolean isTouched = false;
-    private boolean shouldDrawShadow = true;
-    private boolean canUseSignal = true;
+    private boolean canUseShadow = USE_SHADOW_DEFAULT;
+    private boolean canUseSignal = USE_SIG_DEFAULT;
 
     private JoyStick stickState = JoyStick.NONE;
 
+    /**
+     * ----- variables for event managing below here ---------
+     */
     private OnChangeStateListener onChangeStateListener;
 
     /**
@@ -176,6 +192,12 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         resizeImages();
     }
 
+    /**
+     * this method should call after (or while) view creation
+     *
+     * getWidth(), getHeight() method return 0
+     * in constructor JoyStickSurfaceView()
+     */
     private void registerScreenSize() {
         params = new ViewGroup.LayoutParams(getWidth(), getHeight());
     }
@@ -206,7 +228,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                         || event.getAction() == MotionEvent.ACTION_MOVE) {
 
                     if (distance > minDistance && isTouched) {
-                        performOnChangeState(judge8DirectionEventWith(angle));
+                        performOnChangeState(judgeStateWith(angle));
                     } else if (distance <= minDistance && isTouched) {
                         // STICK_NONE;
                         performReleaseJoyStick();
@@ -234,7 +256,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         }
     }
 
-    private JoyStick judge8DirectionEventWith(float angle) {
+    private JoyStick judgeStateWith(float angle) {
         JoyStick state = JoyStick.NONE;
         if (angle >= 247.5 && angle < 292.5) {
             return JoyStick.UP;
@@ -316,9 +338,9 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         releaseJoyStickImages();
 
         loadImages(res,
-                R.drawable.s_joystick_base,
-                R.drawable.s_joystick_stick,
-                R.drawable.s_joystick_shadow);
+                RESID_BACKGROUND_DEFAULT,
+                RESID_STICK_DEFAULT,
+                RESID_SHADOW_DEFAULT);
         // if you remove shadow, you should also remove "stickTall" : stickTall = 0
 
         if (canUseSignal) loadSignalImages(res);
@@ -335,10 +357,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         releaseSignalImages();
 
         loadSignalImages(res,
-                R.drawable.s_signal_up,
-                R.drawable.s_signal_right,
-                R.drawable.s_signal_down,
-                R.drawable.s_signal_left);
+                RESID_SIG_UP_DEFAULT,
+                RESID_SIG_RIGHT_DEFAULT,
+                RESID_SIG_DOWN_DEFAULT,
+                RESID_SIG_LEFT_DEFAULT);
     }
 
     private void loadSignalImages(Resources res,
@@ -413,11 +435,11 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private void drawStick(Canvas canvas) {
         if (isTouched) {
-            if (shadow != null && shouldDrawShadow)
+            if (shadow != null && canUseShadow)
                 canvas.drawBitmap(shadow, jsEntity.s_x, jsEntity.s_y, alphaStickPaint);
             canvas.drawBitmap(stick, jsEntity.x, jsEntity.y, alphaStickPaint);
         } else {
-            if (shadow != null && shouldDrawShadow) {
+            if (shadow != null && canUseShadow) {
                 canvas.drawBitmap(shadow,
                         jsEntity.center_x - (shadowWidth / 2),
                         jsEntity.center_y - (shadowHeight / 2) + stickTall,
@@ -515,7 +537,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public boolean isShadowVisible() {
-        return shouldDrawShadow;
+        return canUseShadow;
     }
 
     private void resizeImages() {
@@ -582,7 +604,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public void setShadowVisibility(boolean shouldDrawShadow) {
-        this.shouldDrawShadow = shouldDrawShadow;
+        this.canUseShadow = shouldDrawShadow;
     }
 
     public void setSignalAvailability(boolean canUseSignal) {
@@ -704,16 +726,5 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             s_x = pos_x - (shadowWidth / 2) + vecPC_x / 3;
             s_y = pos_y - (shadowHeight / 2) + vecPC_y / 3;
         }
-    }
-
-    public class JoyStickResIdSet {
-        int backgroundId;
-        int stickId;
-        int shadowId;
-
-        int sigUpId;
-        int sigRightId;
-        int sigDownId;
-        int sigLeftId;
     }
 }
