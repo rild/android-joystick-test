@@ -86,7 +86,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private OnJoystickMoveListener onJoyStickMoveListener;
     private Thread threadJoyStickMove;
 
-    private OnLongPushListener onLongPushListener;
     private Handler handlerOnLongPush = new Handler();
     private OnLongPushRunnable onLongPushed;
 
@@ -597,7 +596,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     public void setOnLongPushListener(OnLongPushListener onLongPushListener) {
-        this.onLongPushListener = onLongPushListener;
         this.onLongPushed = new OnLongPushRunnable(onLongPushListener);
 
     }
@@ -633,7 +631,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
         @Override
         public void run() {
-            onLongPushListener.onLongPush();
+            this.listener.onLongPush();
             setStickState(JoyStick.LONGPUSH);
         }
     }
