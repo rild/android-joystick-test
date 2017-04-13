@@ -108,8 +108,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         res = context.getResources();
         loadImages(res);
 
-        registerStickSize();
-
         initAlphaPaints();
         jsEntity = new JoyStickEntity();
 
@@ -171,6 +169,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         registerScreenSize();
         registerLayoutCenter(params.width, params.height);
 
+        registerStickSize();
         stickTall = stickHeight / DENO_RATE_STICK_TALL_TO_SIZE; // make user feel sticky
         setStickSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD, params.height / DENO_RATE_STICK_SIZE_TO_PAD);
         setShadowSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW,
