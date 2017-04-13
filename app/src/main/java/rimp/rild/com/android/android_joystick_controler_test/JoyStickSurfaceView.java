@@ -22,9 +22,7 @@ import android.view.ViewGroup;
  */
 
 public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-    private final int TIME_LONG_PUSH_EVENT_ACTIVATE = 1500;
     private final int DENO_RATE_STICK_TALL_TO_SIZE = 25;
-
     private final int DENO_RATE_STICK_SIZE_TO_PAD = 2;
     private final int MARGIN_SHADOW = 32;
     private final int DENO_RATE_OFFSET_TO_PAD = 3;
@@ -80,6 +78,11 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
      * <p>
      * loop interval depends on
      * @param distance
+     * <-- ignore -->
+     *     minDistance
+     *     <-- slow interval, weak signal -->
+     *         (params.width / 2) - OFFSET
+     *         <-- fast interval, strong signal -->
      */
     private final long LOOP_INTERVAL_DEFAULT = 800; // original 100 ms
     public final static long LOOP_INTERVAL_SLOW = 800;
@@ -87,10 +90,10 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private long loopInterval = LOOP_INTERVAL_DEFAULT;
     private long loopFastInterval = LOOP_INTERVAL_DEFAULT;
     private boolean hasFastLoop = false;
-
     private OnJoystickMoveListener onJoyStickMoveListener;
     private Thread threadJoyStickMove;
 
+    private final int TIME_LONG_PUSH_EVENT_ACTIVATE = 1500;
     private Handler handlerOnLongPush = new Handler();
     private OnLongPushRunnable onLongPushed;
 
@@ -98,8 +101,9 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     public JoyStickSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
 //        mContext = context;
-        initHolder();
         if (!isInEditMode()) setZOrderOnTop(true);
+
+        initHolder();
 
         res = context.getResources();
         loadImages(res);
@@ -312,9 +316,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     private void loadImages(Resources res) {
-        if (background != null) background.recycle();
-        if (stick != null) stick.recycle();
-        if (shadow != null) shadow.recycle();
+        releaseJoyStickImages();
 
         loadImages(res,
                 R.drawable.s_joystick_base,
@@ -333,10 +335,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     }
 
     private void loadSignalImages(Resources res) {
-        if (signalUp != null) signalUp.recycle();
-        if (signalRight != null) signalRight.recycle();
-        if (signalDown != null) signalDown.recycle();
-        if (signalLeft != null) signalLeft.recycle();
+        releaseSignalImages();
 
         loadSignalImages(res,
                 R.drawable.s_signal_up,
@@ -353,11 +352,17 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         signalLeft = BitmapFactory.decodeResource(res, resIdLeft);
     }
 
+    private void releaseJoyStickImages() {
+        if (background != null) background.recycle();
+        if (stick != null) stick.recycle();
+        if (shadow != null) shadow.recycle();
+    }
+
     private void releaseSignalImages() {
-        signalUp.recycle();
-        signalRight.recycle();
-        signalDown.recycle();
-        signalLeft.recycle();
+        if (signalUp != null) signalUp.recycle();
+        if (signalRight != null) signalRight.recycle();
+        if (signalDown != null) signalDown.recycle();
+        if (signalLeft != null) signalLeft.recycle();
     }
 
     private void drawJoyStickWith(MotionEvent event) {
@@ -687,7 +692,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         LONGPUSH;
     }
 
-    class JoyStickEntity {
+    private class JoyStickEntity {
         float x, y;
         float s_x, s_y; // shadow
         float center_x, center_y; // center
@@ -702,5 +707,16 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             s_x = pos_x - (shadowWidth / 2) + vecPC_x / 3;
             s_y = pos_y - (shadowHeight / 2) + vecPC_y / 3;
         }
+    }
+
+    public class JoyStickResIdSet {
+        int backgroundId;
+        int stickId;
+        int shadowId;
+
+        int sigUpId;
+        int sigRightId;
+        int sigDownId;
+        int sigLeftId;
     }
 }
