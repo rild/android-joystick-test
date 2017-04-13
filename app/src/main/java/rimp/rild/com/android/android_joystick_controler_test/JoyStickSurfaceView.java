@@ -97,27 +97,89 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     public JoyStickSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
 //        mContext = context;
-        surfaceHolder = getHolder();
-        surfaceHolder.addCallback(this);
-        surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
+        initHolder();
         if (!isInEditMode()) setZOrderOnTop(true);
 
         res = context.getResources();
         loadImages(res);
 
-        stickWidth = stick.getWidth();
-        stickHeight = stick.getHeight();
-        if (shadow != null) {
-            shadowWidth = shadow.getWidth();
-            shadowHeight = shadow.getHeight();
-        }
+        registerStickSize();
+        registerShadowSize();
 
-        alphaSignal = new Paint();
-        alphaBackground = new Paint();
-        alphaStick = new Paint();
+        initAlphaPaints();
         jsEntity = new JoyStickEntity();
 
         registerOnTouchEvent();
+    }
+
+    private void initHolder() {
+        surfaceHolder = getHolder();
+        surfaceHolder.addCallback(this);
+        surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
+    }
+
+    private void initAlphaPaints() {
+        alphaSignal = new Paint();
+        alphaBackground = new Paint();
+        alphaStick = new Paint();
+    }
+
+    private void registerStickSize() {
+        if (stick == null) return;
+        stickWidth = stick.getWidth();
+        stickHeight = stick.getHeight();
+    }
+
+    private void registerShadowSize() {
+        if (shadow == null) return;
+        shadowWidth = shadow.getWidth();
+        shadowHeight = shadow.getHeight();
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        init();
+        Canvas canvas = surfaceHolder.lockCanvas();
+        drawBaseCanvas(canvas);
+        drawStick(canvas);
+        surfaceHolder.unlockCanvasAndPost(canvas);
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
+    /**
+     * DEFALUT
+     * pad (params) 504 // 126 * 4
+     * stick size   220 // 55 * 4
+     * shadow size  252 // 63 * 4
+     * offset       180 // 45 * 4
+     * min distance 40  // 10 * 4
+     * pad alpha    150
+     * stick alpha  180
+     */
+    private void init() {
+        registerScreenSize();
+        registerLayoutCenter(params.width, params.height);
+
+        stickTall = stickHeight / DENO_RATE_STICK_TALL_TO_SIZE; // make user feel sticky
+        setStickSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD, params.height / DENO_RATE_STICK_SIZE_TO_PAD);
+        setShadowSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW,
+                params.height / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW);
+        setLayoutAlpha(150);
+        setStickAlpha(180);
+        setSignalAlpha(140);
+        setOffset(params.width / DENO_RATE_OFFSET_TO_PAD);
+        setMinimumDistance(params.width / DENO_RATE_MIN_DISTANCE_TO_PAD);
+
+        resizeImages();
     }
 
     private void registerScreenSize() {
@@ -128,10 +190,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                Canvas canvas = surfaceHolder.lockCanvas();
-                performResetCanvas(canvas);
-                drawStick(canvas, event);
-                surfaceHolder.unlockCanvasAndPost(canvas);
+                drawJoyStickWith(event);
 
                 performPostLongPushEvent(event);
 
@@ -163,7 +222,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
     private void performReleaseJoyStick() {
         setStickState(JoyStick.NONE);
-//        stickState = JoyStick.NONE;
         interruptJoyStickMoveThread();
         performOnJoyStickMove();
     }
@@ -177,28 +235,20 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
     private JoyStick judge8DirectionEventWith(float angle) {
         JoyStick state = JoyStick.NONE;
         if (angle >= 247.5 && angle < 292.5) {
-            // STICK_UP;
             return JoyStick.UP;
         } else if (angle >= 292.5 && angle < 337.5) {
-            // STICK_UPRIGHT;
             return JoyStick.UPRIGHT;
         } else if (angle >= 337.5 || angle < 22.5) {
-            // STICK_RIGHT;
             return JoyStick.RIGHT;
         } else if (angle >= 22.5 && angle < 67.5) {
-            // STICK_DOWNRIGHT;
             return JoyStick.DOWNRIGHT;
         } else if (angle >= 67.5 && angle < 112.5) {
-            // STICK_DOWN;
             return JoyStick.DOWN;
         } else if (angle >= 112.5 && angle < 157.5) {
-            // STICK_DOWNLEFT;
             return JoyStick.DOWNLEFT;
         } else if (angle >= 157.5 && angle < 202.5) {
-            // STICK_LEFT;
             return JoyStick.LEFT;
         } else if (angle >= 202.5 && angle < 247.5) {
-            // STICK_UPLEFT;
             return JoyStick.UPLEFT;
         }
         return state;
@@ -210,7 +260,6 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             performOnChangeStateFromOthers();
         }
         setStickState(next);
-//        stickState = state;
     }
 
     private void performOnChangeStateFromOthers() {
@@ -271,7 +320,8 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         stick = BitmapFactory.decodeResource(res,
                 R.drawable.s_joystick_stick);
         shadow = BitmapFactory.decodeResource(res,
-                R.drawable.s_joystick_shadow); // if you remove shadow, you should also remove "stickTall" : stickTall = 0
+                R.drawable.s_joystick_shadow);
+        // if you remove shadow, you should also remove "stickTall" : stickTall = 0
 
         if (canUseSignal) loadSignalImages(res);
     }
@@ -299,53 +349,14 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         signalLeft.recycle();
     }
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        init();
+    private void drawJoyStickWith(MotionEvent event) {
         Canvas canvas = surfaceHolder.lockCanvas();
-        performResetCanvas(canvas);
-        drawStick(canvas);
+        drawBaseCanvas(canvas);
+        drawStick(canvas, event);
         surfaceHolder.unlockCanvasAndPost(canvas);
     }
 
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-
-    }
-
-    /**
-     * DEFALUT
-     * pad (params) 504 // 126 * 4
-     * stick size   220 // 55 * 4
-     * shadow size  252 // 63 * 4
-     * offset       180 // 45 * 4
-     * min distance 40  // 10 * 4
-     * pad alpha    150
-     * stick alpha  180
-     */
-    private void init() {
-        registerScreenSize();
-        registerLayoutCenter(params.width, params.height);
-
-        stickTall = stickHeight / DENO_RATE_STICK_TALL_TO_SIZE; // make user feel sticky
-        setStickSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD, params.height / DENO_RATE_STICK_SIZE_TO_PAD);
-        setShadowSize(params.width / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW,
-                params.height / DENO_RATE_STICK_SIZE_TO_PAD + MARGIN_SHADOW);
-        setLayoutAlpha(150);
-        setStickAlpha(180);
-        setSignalAlpha(140);
-        setOffset(params.width / DENO_RATE_OFFSET_TO_PAD);
-        setMinimumDistance(params.width / DENO_RATE_MIN_DISTANCE_TO_PAD);
-
-        resizeImages();
-    }
-
-    private void performResetCanvas(Canvas canvas) {
+    private void drawBaseCanvas(Canvas canvas) {
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         drawBackground(canvas);
     }
@@ -379,7 +390,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             // reset stick pad
-            performResetCanvas(canvas);
+            drawBaseCanvas(canvas);
             isTouched = false;
         }
         // reset stick
