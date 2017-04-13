@@ -235,7 +235,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         performOnJoyStickMove();
     }
 
-    private void sleepJoyStick() throws InterruptedException{
+    private void sleepJoyStick() throws InterruptedException {
         long interval = loopInterval;
         if (hasFastLoop)
             interval = calCurrentInterval();
@@ -623,17 +623,22 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         void onValueChanged(float angle, float power, JoyStick state);
     }
 
-    private class OnLongPushRunnable implements Runnable{
+    private class OnLongPushRunnable implements Runnable {
         OnLongPushListener listener;
+
         public OnLongPushRunnable(OnLongPushListener l) {
             this.listener = l;
         }
 
         @Override
         public void run() {
-            this.listener.onLongPush();
-            setStickState(JoyStick.LONGPUSH);
+            performLongPushed(this.listener);
         }
+    }
+
+    private void performLongPushed(OnLongPushListener l) {
+        l.onLongPush();
+        setStickState(JoyStick.LONGPUSH);
     }
 
     // seems to cause ERROR
