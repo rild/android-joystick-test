@@ -679,7 +679,7 @@ public class JoyStickSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 //        void onValueChanged(float angle, float power, JoyStickState direction);
 //    }
 
-    enum JoyStick {
+    public enum JoyStick {
         NONE,
         UP,
         UPRIGHT,
